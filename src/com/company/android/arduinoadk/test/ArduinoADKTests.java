@@ -9,7 +9,7 @@ public class ArduinoADKTests {
 	public void testParsingCommandJoystick() {
 		double totalX = 0.5;
 		double totalY=0.234;
-		String stringToParse = "JOYSTICK:x=" + totalX + ":y=" + totalY  + "\n";
+		String stringToParse = "STICK:x=" + totalX + ":y=" + totalY  + "\n";
 		System.out.println(stringToParse);
 		
 	    double actualX = Double.parseDouble(stringToParse.substring(stringToParse.indexOf("x=")+2, stringToParse.indexOf(":y=")));

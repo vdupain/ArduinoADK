@@ -1,8 +1,11 @@
-package com.company.android.arduinoadk;
+package com.company.android.arduinoadk.libusb;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+
+import com.company.android.arduinoadk.ArduinoMessage;
+import com.company.android.arduinoadk.WhatAbout;
 
 import android.os.Handler;
 import android.os.Message;
@@ -40,11 +43,11 @@ public class UsbAccessoryCommunication implements Runnable {
 				switch (buffer[i]) {
 				case 0x6:
 					if (len >= 3) {
-						Message m = Message.obtain(handler, WhatAbout.TELEMETRIE.ordinal());
+						Message m = Message.obtain(handler, WhatAbout.TELEMETRY.ordinal());
 						// unsigned byte on arduino and signed in Java so...
 						int degree = buffer[i + 1] & 0xFF;
 						int distance = buffer[i + 2] & 0xFF;
-						m.obj = new TelemetrieMessage(degree, distance);
+						m.obj = new ArduinoMessage(degree, distance);
 						handler.sendMessage(m);
 					}
 					i += 3;

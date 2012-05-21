@@ -32,7 +32,7 @@
 			android:screenOrientation="portrait">
 		</activity>
         <activity
-            android:name="UsbAccessoryActivity"
+            android:name=".libusb.UsbAccessoryActivity"
             android:label="ArduinoADK"
             android:launchMode="singleInstance"
             android:taskAffinity="" >

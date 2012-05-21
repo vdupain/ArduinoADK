@@ -2,14 +2,15 @@
 <resources>
 
     <string name="app_name">ArduinoADK</string>
-    <string name="degree">Degree:</string>
-    <string name="distance">Distance:</string>
+    <string name="degree">Degree=</string>
+    <string name="distance">Distance=</string>
     <string name="degree_value">0</string>
     <string name="distance_value">0</string>
     <string name="degree_unit">°</string>
     <string name="distance_unit">cm</string>
-    <string name="telemetrie">Télémétrie</string>
-    <string name="serveur">Serveur</string>
-    <string name="ip_address">Adresse IP</string>
+    <string name="arduino">Arduino</string>
+    <string name="server">Server</string>
+    <string name="ip_address">IP address</string>
+    <string name="listen_on">listen on</string>
     
 </resources>

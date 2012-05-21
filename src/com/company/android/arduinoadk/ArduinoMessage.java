@@ -1,11 +1,11 @@
 package com.company.android.arduinoadk;
 
-public class TelemetrieMessage {
+public class ArduinoMessage {
 
 	private int degree;
 	private int distance;
 
-	public TelemetrieMessage(int degree, int distance) {
+	public ArduinoMessage(int degree, int distance) {
 		this.degree = degree;
 		this.distance = distance;
 	}

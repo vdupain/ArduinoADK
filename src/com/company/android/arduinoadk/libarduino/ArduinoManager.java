@@ -1,7 +1,7 @@
 package com.company.android.arduinoadk.libarduino;
 
 import com.company.android.arduinoadk.ControllStick;
-import com.company.android.arduinoadk.UsbAccessoryCommunication;
+import com.company.android.arduinoadk.libusb.UsbAccessoryCommunication;
 
 public class ArduinoManager {
 

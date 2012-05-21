@@ -16,7 +16,7 @@
             android:id="@+id/container1"
             android:layout_width="match_parent"
             android:layout_height="420dp"
-            layout="@layout/telemetriecontainer" />
+            layout="@layout/arduinocontainer" />
         <include
             android:id="@+id/container2"
             android:layout_width="match_parent"
@@ -39,7 +39,7 @@
             android:background="@color/dark_cyan"
             android:clickable="true"
             android:gravity="center"
-            android:text="@string/telemetrie" >
+            android:text="@string/arduino" >
         </TextView>
 
         <TextView
@@ -50,7 +50,7 @@
             android:layout_weight="1"
             android:clickable="true"
             android:gravity="center"
-            android:text="@string/serveur" >
+            android:text="@string/server" >
         </TextView>
     </LinearLayout>
 

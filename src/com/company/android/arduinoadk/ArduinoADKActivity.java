@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import com.company.android.arduinoadk.libusb.UsbAccessoryCommunication;
+
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -40,7 +42,7 @@ public class ArduinoADKActivity extends Activity {
 	protected FileOutputStream outputStream;
 	protected UsbAccessoryCommunication usbAccessoryCommunication;
 
-	private TelemetrieController telemetrieController;
+	private ArduinoController arduinoController;
 	private ServerController serverController;
 
 	private PowerManager.WakeLock wakeLock;
@@ -49,8 +51,8 @@ public class ArduinoADKActivity extends Activity {
 		@Override
 		public void handleMessage(Message msg) {
 			switch (WhatAbout.values()[msg.what]) {
-			case TELEMETRIE:
-				handleTelemetrieMessage((TelemetrieMessage) msg.obj);
+			case TELEMETRY:
+				handleTelemetryMessage((ArduinoMessage) msg.obj);
 				break;
 			case SERVER_LOG:
 				logServerConsole((String) msg.obj);
@@ -198,7 +200,7 @@ public class ArduinoADKActivity extends Activity {
 			fileDescriptor = null;
 			usbAccessory = null;
 		}
-		telemetrieController.usbAccessoryDetached();
+		arduinoController.usbAccessoryDetached();
 		serverController.usbAccessoryDetached();
 	}
 
@@ -247,15 +249,15 @@ public class ArduinoADKActivity extends Activity {
 
 	protected void showControls() {
 		setContentView(R.layout.main);
-		telemetrieController = new TelemetrieController(this);
-		telemetrieController.usbAccessoryAttached();
+		arduinoController = new ArduinoController(this);
+		arduinoController.usbAccessoryAttached();
 
 		serverController = new ServerController(this);
 		serverController.usbAccessoryAttached();
 	}
 
-	private void handleTelemetrieMessage(TelemetrieMessage message) {
-		telemetrieController.setRadarPosition(message.getDegree(), message.getDistance());
+	private void handleTelemetryMessage(ArduinoMessage message) {
+		arduinoController.setRadarPosition(message.getDegree(), message.getDistance());
 	}
 
 	public UsbAccessoryCommunication getUsbAccessoryCommunication() {

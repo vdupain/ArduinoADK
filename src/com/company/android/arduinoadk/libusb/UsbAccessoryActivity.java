@@ -1,10 +1,12 @@
-package com.company.android.arduinoadk;
+package com.company.android.arduinoadk.libusb;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+
+import com.company.android.arduinoadk.ArduinoADKMainActivity;
 
 /* This Activity does nothing but receive USB_DEVICE_ATTACHED events from the
  * USB service and springboards to the main Gallery activity

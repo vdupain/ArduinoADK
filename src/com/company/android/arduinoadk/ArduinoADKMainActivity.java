@@ -9,7 +9,7 @@ import android.util.Log;
 public class ArduinoADKMainActivity extends Activity {
 	static final String TAG = "ArduinoADKMainActivity";
 
-	static Intent createIntent(Activity activity) {
+	public static Intent createIntent(Activity activity) {
 		Log.i(TAG, "Starting phone UI");
 		return new Intent(activity, ArduinoADKPhone.class);
 	}

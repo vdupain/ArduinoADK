@@ -1,9 +1,9 @@
 package com.company.android.arduinoadk;
 
-public class TelemetrieController extends AbstractController {
+public class ArduinoController extends AbstractController {
 	private RadarView radarView;
 
-	public TelemetrieController(ArduinoADKActivity activity) {
+	public ArduinoController(ArduinoADKActivity activity) {
 		super(activity);
 		radarView = (RadarView) findViewById(R.id.radarView);
 	}

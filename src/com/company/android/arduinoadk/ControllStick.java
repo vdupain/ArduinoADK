@@ -20,7 +20,7 @@ public class ControllStick {
 
 	@Override
 	public String toString() {
-		return "xy(" + x + "," + y + ")";
+		return "x=" + x + ", y=" + y;
 	}
 
 }

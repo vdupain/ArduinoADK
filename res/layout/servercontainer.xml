@@ -23,11 +23,22 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="20dp"
+        android:paddingLeft="5dip"
         android:shadowColor="#000000"
         android:shadowDx="1"
         android:shadowDy="1"
         android:shadowRadius="1"
         android:text="@string/ip_address"
+        android:textColor="@color/orange" />
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/ip"
+        android:layout_alignBottom="@+id/ip"
+        android:layout_toLeftOf="@+id/ip"
+        android:text="@string/listen_on"
         android:textColor="@color/orange" />
 
 </RelativeLayout>

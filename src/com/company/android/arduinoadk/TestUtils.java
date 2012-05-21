@@ -15,8 +15,8 @@ public class TestUtils {
 				Random random = new Random();
 				while (true) {
 					for (int i = 0; i <= 180; i++) {
-						Message m = Message.obtain(handler, WhatAbout.TELEMETRIE.ordinal());
-						m.obj = new TelemetrieMessage(i, 120 + random.nextInt(60));
+						Message m = Message.obtain(handler, WhatAbout.TELEMETRY.ordinal());
+						m.obj = new ArduinoMessage(i, 120 + random.nextInt(60));
 						handler.sendMessage(m);
 						try {
 							Thread.sleep(10);
@@ -24,8 +24,8 @@ public class TestUtils {
 						}
 					}
 					for (int i = 180; i >= 0; i--) {
-						Message m = Message.obtain(handler, WhatAbout.TELEMETRIE.ordinal());
-						m.obj = new TelemetrieMessage(i, 120 + random.nextInt(60));
+						Message m = Message.obtain(handler, WhatAbout.TELEMETRY.ordinal());
+						m.obj = new ArduinoMessage(i, 120 + random.nextInt(60));
 						handler.sendMessage(m);
 						try {
 							Thread.sleep(10);

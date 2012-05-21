@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.util.Log;
 
 import com.company.android.arduinoadk.libarduino.ArduinoManager;
+import com.company.android.arduinoadk.libusb.UsbAccessoryCommunication;
 
 /**
  * 
@@ -81,9 +82,9 @@ public class Server extends Thread implements Runnable {
 			Log.d(TAG, request);
 			if (request.startsWith("STICK"))
 				commandStick();
-			else if (request.equalsIgnoreCase("HELP"))
+			else if (request.startsWith("HELP"))
 				commandHelp();
-			else if (request.equalsIgnoreCase("QUIT")) {
+			else if (request.startsWith("QUIT")) {
 				commandQuit();
 				break;
 			} else
@@ -108,14 +109,10 @@ public class Server extends Thread implements Runnable {
 		double actualY = Double.parseDouble(request.substring(request.indexOf("y=") + 2, request.indexOf("\n")));
 		ControllStick controllStick = new ControllStick(actualX, actualY);
 		this.arduinoManager.sendStickCommand(controllStick);
-		// writeContent("Command Joystick, send to Arduino x=" + x + " y=" + y +
-		// "\r\n");
-		log(controllStick.toString());
-		writeContent(controllStick.toString());
+		log(this.getClientAddress().getHostAddress()+ " - " + controllStick.toString());
 	}
 
 	private void commandHelp() {
-
 	}
 
 	private void commandQuit() {
