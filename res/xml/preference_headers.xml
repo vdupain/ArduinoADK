@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<preference-headers xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <header
+        android:fragment="com.company.android.arduinoadk.SettingsActivity$RCServerSettingsPreferenceFragment"
+        android:summary="Remote control server settings."
+        android:title="Remote Control Server" >
+    </header>
+    <header
+        android:fragment="com.company.android.arduinoadk.SettingsActivity$ArduinoSettingsPreferenceFragment"
+        android:summary="Arduino settings."
+        android:title="Arduino" >
+    </header>
+
+</preference-headers>

@@ -4,12 +4,12 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import com.company.android.arduinoadk.ArduinoMessage;
-import com.company.android.arduinoadk.WhatAbout;
-
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+
+import com.company.android.arduinoadk.ArduinoMessage;
+import com.company.android.arduinoadk.WhatAbout;
 
 public class UsbAccessoryCommunication implements Runnable {
 	private static final String TAG = "UsbAccessoryCommunication";
@@ -77,6 +77,13 @@ public class UsbAccessoryCommunication implements Runnable {
 				Log.e(TAG, e.getMessage(), e);
 			}
 		}
+	}
+
+	private int composeInt(byte hi, byte lo) {
+		int val = (int) hi & 0xff;
+		val *= 256;
+		val += (int) lo & 0xff;
+		return val;
 	}
 
 }

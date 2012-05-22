@@ -4,29 +4,32 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.preference.PreferenceManager;
 import android.text.Html;
 import android.util.Log;
 import android.widget.TextView;
 
-public class ServerController extends AbstractController {
+public class RemoteControlServerController extends AbstractController {
 	private final String TAG = "ServerController";
 
-	private static Server server;
-
+	private static RemoteControlServer server;
 	private TextView console;
 	private TextView ip;
 
-	public ServerController(ArduinoADKActivity activity) {
+	public RemoteControlServerController(ArduinoADKActivity activity) {
 		super(activity);
 		console = (TextView) findViewById(R.id.console);
 		ip = (TextView) findViewById(R.id.ip);
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this.activity);
+		int port = Integer.parseInt(preferences.getString("tcp_port", "12345"));
+		server = new RemoteControlServer(this.activity.usbAccessoryCommunication, port, this.activity.handler);
 	}
 
 	@Override
 	protected void onUsbAccesssoryAttached() {
-		server = new Server(this.activity.usbAccessoryCommunication, ArduinoADKActivity.DEFAULT_PORT, this.activity.handler);
 		server.start();
 	}
 
@@ -47,7 +50,7 @@ public class ServerController extends AbstractController {
 				inetAddress = InetAddress.getByAddress(byteaddr);
 				ip.setText("tcp://");
 				ip.append(inetAddress.getHostAddress());
-				ip.append(":" + this.activity.DEFAULT_PORT + "/");
+				ip.append(":" + this.server.getPort() + "/");
 			} catch (UnknownHostException e) {
 				Log.e(TAG, e.getMessage(), e);
 				ip.setText(e.getMessage());

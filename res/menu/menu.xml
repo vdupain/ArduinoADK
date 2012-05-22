@@ -2,16 +2,28 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <item
-        android:id="@+id/test"
-        android:title="Test"/>
+        android:id="@+id/menu_rcserver"
+        android:showAsAction="ifRoom|withText"
+        android:title="@string/menu_rcserver"/>
     <item
-        android:id="@+id/settings"
-        android:title="Settings"/>
+        android:id="@+id/menu_arduino"
+        android:showAsAction="ifRoom|withText"
+        android:title="@string/menu_arduino"/>
     <item
-        android:id="@+id/abouthelp"
-        android:title="About &amp; Help"/>
+        android:id="@+id/menu_test"
+        android:showAsAction="ifRoom|withText"
+        android:title="@string/menu_test"/>
     <item
-        android:id="@+id/quit"
-        android:title="Quit"/>
+        android:id="@+id/menu_settings"
+        android:showAsAction="ifRoom|withText"
+        android:title="@string/menu_settings"/>
+    <item
+        android:id="@+id/menu_abouthelp"
+        android:showAsAction="ifRoom|withText"
+        android:title="@string/menu_abouthelp"/>
+    <item
+        android:id="@+id/menu_quit"
+        android:showAsAction="ifRoom|withText"
+        android:title="@string/menu_quit"/>
 
 </menu>

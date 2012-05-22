@@ -8,6 +8,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 
 import com.company.android.arduinoadk.libarduino.ArduinoManager;
@@ -19,8 +20,8 @@ import com.company.android.arduinoadk.libusb.UsbAccessoryCommunication;
  * 
  */
 
-public class Server extends Thread implements Runnable {
-	private final String TAG = "Server";
+public class RemoteControlServer extends HandlerThread implements Runnable {
+	private final String TAG = "RemoteControlServer";
 
 	private Handler handler;
 	private int port;
@@ -32,8 +33,14 @@ public class Server extends Thread implements Runnable {
 	private String request, response;
 
 	private ArduinoManager arduinoManager;
+	private ControllStick controllStick = new ControllStick();
 
-	public Server(UsbAccessoryCommunication usbAccessoryCommunication, int port, Handler handler) {
+	public RemoteControlServer() {
+		super("RemoteControllerServer");
+	}
+
+	public RemoteControlServer(UsbAccessoryCommunication usbAccessoryCommunication, int port, Handler handler) {
+		this();
 		this.port = port;
 		this.handler = handler;
 		this.arduinoManager = new ArduinoManager(usbAccessoryCommunication);
@@ -42,12 +49,14 @@ public class Server extends Thread implements Runnable {
 	@Override
 	public void run() {
 		try {
-			server = new ServerSocket(port);
+			server = new ServerSocket(getPort());
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
 			log(e.getMessage());
 			return;
 		}
+		log("Remote Control Server started...");
+		log("Accept client connection...");
 		while (handleClient())
 			;
 	}
@@ -107,9 +116,9 @@ public class Server extends Thread implements Runnable {
 	private void commandStick() {
 		double actualX = Double.parseDouble(request.substring(request.indexOf("x=") + 2, request.indexOf(":y=")));
 		double actualY = Double.parseDouble(request.substring(request.indexOf("y=") + 2, request.indexOf("\n")));
-		ControllStick controllStick = new ControllStick(actualX, actualY);
+		controllStick.setX(actualX).setY(actualY);
 		this.arduinoManager.sendStickCommand(controllStick);
-		log(this.getClientAddress().getHostAddress()+ " - " + controllStick.toString());
+		log(this.getClientAddress().getHostAddress() + " - " + controllStick.toString());
 	}
 
 	private void commandHelp() {
@@ -155,6 +164,10 @@ public class Server extends Thread implements Runnable {
 	 */
 	private void log(String msg) {
 		handler.obtainMessage(WhatAbout.SERVER_LOG.ordinal(), msg).sendToTarget();
+	}
+
+	public int getPort() {
+		return port;
 	}
 
 }

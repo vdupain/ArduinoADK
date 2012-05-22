@@ -1,57 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/mainlayout"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-    <FrameLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingLeft="0dip"
-        android:paddingRight="0dip" >
-
-        <include
-            android:id="@+id/container1"
-            android:layout_width="match_parent"
-            android:layout_height="420dp"
-            layout="@layout/arduinocontainer" />
-        <include
-            android:id="@+id/container2"
-            android:layout_width="match_parent"
-            android:layout_height="420dp"
-            layout="@layout/servercontainer" />
-        </FrameLayout>
-
-    <LinearLayout
-        android:id="@+id/TabContainer"
+    <include
+        android:id="@+id/container1"
         android:layout_width="match_parent"
-        android:layout_height="fill_parent"
-        android:orientation="horizontal" >
+        android:layout_height="wrap_content"
+        layout="@layout/rcservercontainer" />
+    <include
+        android:id="@+id/container2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        layout="@layout/arduinocontainer" />
 
-        <TextView
-            android:id="@+id/label1"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:background="@color/dark_cyan"
-            android:clickable="true"
-            android:gravity="center"
-            android:text="@string/arduino" >
-        </TextView>
 
-        <TextView
-            android:id="@+id/label2"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:clickable="true"
-            android:gravity="center"
-            android:text="@string/server" >
-        </TextView>
-    </LinearLayout>
-
-</LinearLayout>
+</FrameLayout>

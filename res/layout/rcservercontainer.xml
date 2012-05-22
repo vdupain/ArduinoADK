@@ -31,14 +31,4 @@
         android:text="@string/ip_address"
         android:textColor="@color/orange" />
 
-    <TextView
-        android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/ip"
-        android:layout_alignBottom="@+id/ip"
-        android:layout_toLeftOf="@+id/ip"
-        android:text="@string/listen_on"
-        android:textColor="@color/orange" />
-
 </RelativeLayout>

@@ -5,8 +5,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import com.company.android.arduinoadk.libusb.UsbAccessoryCommunication;
-
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -24,9 +22,14 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Toast;
 
-public class ArduinoADKActivity extends Activity {
+import com.company.android.arduinoadk.SimpleGestureFilter.SimpleGestureListener;
+import com.company.android.arduinoadk.libusb.UsbAccessoryCommunication;
+
+public class ArduinoADKActivity extends Activity implements SimpleGestureListener {
 	private static final String TAG = "ArduinoADKActivity";
 	public static final int DEFAULT_PORT = 12345;
 
@@ -43,9 +46,10 @@ public class ArduinoADKActivity extends Activity {
 	protected UsbAccessoryCommunication usbAccessoryCommunication;
 
 	private ArduinoController arduinoController;
-	private ServerController serverController;
+	private RemoteControlServerController serverController;
 
 	private PowerManager.WakeLock wakeLock;
+	private SimpleGestureFilter detector;
 
 	protected Handler handler = new Handler() {
 		@Override
@@ -93,20 +97,34 @@ public class ArduinoADKActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setupAccessory();
-		showControls();
+
+		setContentView(R.layout.main);
+		findViewById(R.id.container1).setVisibility(View.VISIBLE);
+		findViewById(R.id.container2).setVisibility(View.GONE);
+
+		// setupActionBarForTabs();
+
+		initControllers();
 
 		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 		wakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "com.company.android.arduinoadk.wakelock");
 
-		// Print version number
-		/*
-		 * try { logConsole("<b>ArduinoADK v" +
-		 * this.getPackageManager().getPackageInfo(this.getPackageName(),
-		 * 0).versionName + "</b>"); } catch (NameNotFoundException e) {
-		 * logConsole("<b>ArduinoADK</b>"); }
-		 */
-
+		detector = new SimpleGestureFilter(this, this);
 	}
+
+	/*
+	 * private void setupActionBarForTabs() { ActionBar actionBar =
+	 * getActionBar();
+	 * actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+	 * actionBar.setDisplayShowTitleEnabled(true);
+	 * 
+	 * Tab tab = actionBar.newTab().setText(R.string.arduino);
+	 * tab.setTabListener(new MyTabListener<ArduinoFragment>(this, "arduino",
+	 * ArduinoFragment.class)); actionBar.addTab(tab); tab =
+	 * actionBar.newTab().setText(R.string.server); tab.setTabListener(new
+	 * MyTabListener<ServerFragment>(this, "server", ServerFragment.class));
+	 * actionBar.addTab(tab); }
+	 */
 
 	private void setupAccessory() {
 		usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
@@ -132,6 +150,7 @@ public class ArduinoADKActivity extends Activity {
 	@Override
 	public void onResume() {
 		super.onResume();
+
 		wakeLock.acquire();
 
 		Intent intent = getIntent();
@@ -157,7 +176,6 @@ public class ArduinoADKActivity extends Activity {
 		}
 
 		this.serverController.displayIP();
-
 	}
 
 	@Override
@@ -204,33 +222,35 @@ public class ArduinoADKActivity extends Activity {
 		serverController.usbAccessoryDetached();
 	}
 
-	private int composeInt(byte hi, byte lo) {
-		int val = (int) hi & 0xff;
-		val *= 256;
-		val += (int) lo & 0xff;
-		return val;
-	}
-
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.menu, menu);
-		return true;
+		return super.onCreateOptionsMenu(menu);
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.quit:
+		case R.id.menu_rcserver:
+			findViewById(R.id.container1).setVisibility(View.VISIBLE);
+			findViewById(R.id.container2).setVisibility(View.GONE);
+			return true;
+		case R.id.menu_arduino:
+			findViewById(R.id.container1).setVisibility(View.GONE);
+			findViewById(R.id.container2).setVisibility(View.VISIBLE);
+			return true;
+		case R.id.menu_quit:
 			quit();
 			return true;
-		case R.id.test:
-			TestUtils.test(handler);
+		case R.id.menu_test:
+			// TestUtils.test(handler);
+			startService(new Intent(this, RemoteControlService.class));
 			return true;
-		case R.id.settings:
-			Toast.makeText(this, "Not yet implemented", Toast.LENGTH_SHORT).show();
+		case R.id.menu_settings:
+			startActivity(new Intent(this, SettingsActivity.class));
 			return true;
-		case R.id.abouthelp:
+		case R.id.menu_abouthelp:
 			Toast.makeText(this, "Not yet implemented", Toast.LENGTH_SHORT).show();
 			return true;
 		default:
@@ -247,12 +267,11 @@ public class ArduinoADKActivity extends Activity {
 		serverController.logConsole(message);
 	}
 
-	protected void showControls() {
-		setContentView(R.layout.main);
+	protected void initControllers() {
 		arduinoController = new ArduinoController(this);
 		arduinoController.usbAccessoryAttached();
 
-		serverController = new ServerController(this);
+		serverController = new RemoteControlServerController(this);
 		serverController.usbAccessoryAttached();
 	}
 
@@ -262,6 +281,37 @@ public class ArduinoADKActivity extends Activity {
 
 	public UsbAccessoryCommunication getUsbAccessoryCommunication() {
 		return usbAccessoryCommunication;
+	}
+
+	@Override
+	public void onSwipe(int direction) {
+		String str = "";
+		switch (direction) {
+		case SimpleGestureFilter.SWIPE_RIGHT:
+			str = "Swipe Right";
+			break;
+		case SimpleGestureFilter.SWIPE_LEFT:
+			str = "Swipe Left";
+			break;
+		case SimpleGestureFilter.SWIPE_DOWN:
+			str = "Swipe Down";
+			break;
+		case SimpleGestureFilter.SWIPE_UP:
+			str = "Swipe Up";
+			break;
+		}
+		Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
+	}
+
+	@Override
+	public void onDoubleTap() {
+		Toast.makeText(this, "Double Tap", Toast.LENGTH_SHORT).show();
+	}
+
+	@Override
+	public boolean dispatchTouchEvent(MotionEvent me) {
+		this.detector.onTouchEvent(me);
+		return super.dispatchTouchEvent(me);
 	}
 
 }

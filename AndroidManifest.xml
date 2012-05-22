@@ -4,7 +4,9 @@
     android:versionCode="1"
     android:versionName="1.0" >
 
-    <uses-sdk android:minSdkVersion="15" />
+    <uses-sdk
+        android:minSdkVersion="15"
+        android:targetSdkVersion="15" />
 
     <uses-feature android:name="android.hardware.usb.accessory" />
 
@@ -16,9 +18,9 @@
     </uses-permission>
 
     <application
-        android:hardwareAccelerated="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name" >
+        <service android:name=".RemoteControlService" />
         <activity
             android:name=".ArduinoADKMainActivity"
             android:label="@string/app_name" >
@@ -28,9 +30,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-		<activity android:name=".ArduinoADKPhone" android:label="@string/app_name"
-			android:screenOrientation="portrait">
-		</activity>
+        <activity
+            android:name=".ArduinoADKPhone"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait" >
+        </activity>
         <activity
             android:name=".libusb.UsbAccessoryActivity"
             android:label="ArduinoADK"

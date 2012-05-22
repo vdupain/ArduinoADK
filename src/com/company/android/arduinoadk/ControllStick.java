@@ -10,6 +10,10 @@ public class ControllStick {
 		this.y = y;
 	}
 
+	public ControllStick() {
+
+	}
+
 	public double getX() {
 		return x;
 	}
@@ -18,9 +22,19 @@ public class ControllStick {
 		return y;
 	}
 
+	public ControllStick setY(double y) {
+		this.y = y;
+		return this;
+	}
+
+	public ControllStick setX(double x) {
+		this.x = x;
+		return this;
+	}
+
 	@Override
 	public String toString() {
-		return "x=" + x + ", y=" + y;
+		return "x=" + x + ", y=" + getY();
 	}
 
 }
