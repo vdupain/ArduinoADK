@@ -20,15 +20,15 @@ public abstract class AbstractController {
 	}
 
 	void usbAccessoryAttached() {
-		onUsbAccesssoryAttached();
+		onUsbAccessoryAttached();
 	}
 
 	void usbAccessoryDetached() {
-		onUsbAccesssoryDetached();
+		onUsbAccessoryDetached();
 	}
 
-	abstract protected void onUsbAccesssoryAttached();
+	abstract protected void onUsbAccessoryAttached();
 
-	abstract protected void onUsbAccesssoryDetached();
+	abstract protected void onUsbAccessoryDetached();
 
 }

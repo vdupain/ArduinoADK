@@ -1,14 +1,14 @@
 package com.company.android.arduinoadk.libarduino;
 
 import com.company.android.arduinoadk.ControllStick;
-import com.company.android.arduinoadk.libusb.UsbAccessoryCommunication;
+import com.company.android.arduinoadk.libusb.UsbAccessoryManager;
 
 public class ArduinoManager {
 
-	private final UsbAccessoryCommunication usbAccessoryCommunication;
+	private final UsbAccessoryManager usbAccessoryManager;
 
-	public ArduinoManager(UsbAccessoryCommunication usbAccessoryCommunication) {
-		this.usbAccessoryCommunication = usbAccessoryCommunication;
+	public ArduinoManager(UsbAccessoryManager usbAccessoryManager) {
+		this.usbAccessoryManager = usbAccessoryManager;
 	}
 
 	public void sendSafeStickCommand() {
@@ -18,10 +18,8 @@ public class ArduinoManager {
 	public void sendStickCommand(ControllStick controllStick) {
 		byte x = (byte) (controllStick.getX() * 255);
 		byte y = (byte) (controllStick.getY() * 255);
-		if (usbAccessoryCommunication != null) {
-			usbAccessoryCommunication.sendCommand(ArduinoCommand.SERVO.ordinal(), ArduinoTarget.DIRECTION_SERVO.ordinal(), x);
-			usbAccessoryCommunication.sendCommand(ArduinoCommand.SERVO.ordinal(), ArduinoTarget.MOTOR_SERVO.ordinal(), y);
-		}
+		usbAccessoryManager.sendCommand((byte) 2, (byte) 0x1, x);
+		usbAccessoryManager.sendCommand((byte) 2, (byte) 0x2, y);
 	}
 
 }

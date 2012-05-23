@@ -1,55 +1,40 @@
 package com.company.android.arduinoadk;
 
-import java.io.FileDescriptor;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
 import android.app.Activity;
-import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.hardware.usb.UsbAccessory;
-import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
-import android.os.ParcelFileDescriptor;
 import android.os.PowerManager;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.Switch;
 import android.widget.Toast;
 
-import com.company.android.arduinoadk.SimpleGestureFilter.SimpleGestureListener;
-import com.company.android.arduinoadk.libusb.UsbAccessoryCommunication;
+import com.company.android.arduinoadk.RemoteControlService.LocalBinder;
+import com.company.android.arduinoadk.libusb.UsbAccessoryManager;
 
-public class ArduinoADKActivity extends Activity implements SimpleGestureListener {
+public class ArduinoADKActivity extends Activity implements OnCheckedChangeListener {
 	private static final String TAG = "ArduinoADKActivity";
-	public static final int DEFAULT_PORT = 12345;
 
-	private static final String ACTION_USB_PERMISSION = "com.company.android.arduinoadk.USB_PERMISSION";
-
-	private UsbManager usbManager;
-	private PendingIntent permissionIntent;
-	private boolean permissionRequestPending;
-
-	private UsbAccessory usbAccessory;
-	private ParcelFileDescriptor fileDescriptor;
-	protected FileInputStream inputStream;
-	protected FileOutputStream outputStream;
-	protected UsbAccessoryCommunication usbAccessoryCommunication;
+	protected UsbAccessoryManager usbAccessoryManager;
 
 	private ArduinoController arduinoController;
-	private RemoteControlServerController serverController;
+	private RemoteControlServerController rcServerController;
 
 	private PowerManager.WakeLock wakeLock;
-	private SimpleGestureFilter detector;
+
+	private RemoteControlService remoteControlService;
+	private boolean mIsBound = false;
 
 	protected Handler handler = new Handler() {
 		@Override
@@ -69,79 +54,70 @@ public class ArduinoADKActivity extends Activity implements SimpleGestureListene
 		}
 	};
 
-	private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			String action = intent.getAction();
-			if (ACTION_USB_PERMISSION.equals(action)) {
-				synchronized (this) {
-					UsbAccessory accessory = (UsbAccessory) intent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY);
-					if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-						openAccessory(accessory);
-					} else {
-						Log.d(TAG, "Permission denied for USB accessory " + accessory);
-					}
-					permissionRequestPending = false;
-				}
-			} else if (UsbManager.ACTION_USB_ACCESSORY_DETACHED.equals(action)) {
-				UsbAccessory accessory = (UsbAccessory) intent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY);
-				if (accessory != null && accessory.equals(usbAccessory)) {
-					closeAccessory();
-				}
-			}
-		}
-	};
-
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setupAccessory();
+		usbAccessoryManager = new UsbAccessoryManager(this.getApplicationContext(), handler);
+		usbAccessoryManager.setupAccessory((UsbAccessory) this.getLastNonConfigurationInstance());
 
 		setContentView(R.layout.main);
 		findViewById(R.id.container1).setVisibility(View.VISIBLE);
 		findViewById(R.id.container2).setVisibility(View.GONE);
 
-		// setupActionBarForTabs();
+		Switch switchRcServer = (Switch) findViewById(R.id.switchRCServer);
+		switchRcServer.setOnCheckedChangeListener(this);
 
 		initControllers();
 
 		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 		wakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "com.company.android.arduinoadk.wakelock");
-
-		detector = new SimpleGestureFilter(this, this);
 	}
 
-	/*
-	 * private void setupActionBarForTabs() { ActionBar actionBar =
-	 * getActionBar();
-	 * actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-	 * actionBar.setDisplayShowTitleEnabled(true);
-	 * 
-	 * Tab tab = actionBar.newTab().setText(R.string.arduino);
-	 * tab.setTabListener(new MyTabListener<ArduinoFragment>(this, "arduino",
-	 * ArduinoFragment.class)); actionBar.addTab(tab); tab =
-	 * actionBar.newTab().setText(R.string.server); tab.setTabListener(new
-	 * MyTabListener<ServerFragment>(this, "server", ServerFragment.class));
-	 * actionBar.addTab(tab); }
-	 */
+	@Override
+	protected void onStart() {
+		super.onStart();
+	}
 
-	private void setupAccessory() {
-		usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
-		permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
-		IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
-		filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
-		registerReceiver(mUsbReceiver, filter);
-		if (getLastNonConfigurationInstance() != null) {
-			usbAccessory = (UsbAccessory) getLastNonConfigurationInstance();
-			openAccessory(usbAccessory);
+	@Override
+	protected void onStop() {
+		super.onStop();
+	}
+
+	@Override
+	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+		switch (buttonView.getId()) {
+		case R.id.switchRCServer:
+			if (buttonView.isChecked()) {
+				doBindService();
+			} else {
+				doUnbindService();
+			}
+			break;
+		}
+	}
+
+	private void doBindService() {
+		// Establish a connection with the service. We use an explicit
+		// class name because we want a specific service implementation that
+		// we know will be running in our own process (and thus won't be
+		// supporting component replacement by other applications).
+		bindService(new Intent(this, RemoteControlService.class), mConnection, Context.BIND_AUTO_CREATE);
+		mIsBound = true;
+	}
+
+	private void doUnbindService() {
+		// Unbind from the service
+		if (mIsBound) {
+			unbindService(mConnection);
+			mIsBound = false;
 		}
 	}
 
 	@Override
 	public Object onRetainNonConfigurationInstance() {
-		if (usbAccessory != null) {
-			return usbAccessory;
+		if (this.usbAccessoryManager.getUsbAccessory() != null) {
+			return this.usbAccessoryManager.getUsbAccessory();
 		} else {
 			return super.onRetainNonConfigurationInstance();
 		}
@@ -150,76 +126,25 @@ public class ArduinoADKActivity extends Activity implements SimpleGestureListene
 	@Override
 	public void onResume() {
 		super.onResume();
-
 		wakeLock.acquire();
-
-		Intent intent = getIntent();
-		if (inputStream != null && outputStream != null) {
-			return;
-		}
-
-		UsbAccessory[] accessories = usbManager.getAccessoryList();
-		UsbAccessory accessory = (accessories == null ? null : accessories[0]);
-		if (accessory != null) {
-			if (usbManager.hasPermission(accessory)) {
-				openAccessory(accessory);
-			} else {
-				synchronized (mUsbReceiver) {
-					if (!permissionRequestPending) {
-						usbManager.requestPermission(accessory, permissionIntent);
-						permissionRequestPending = true;
-					}
-				}
-			}
-		} else {
-			Log.d(TAG, "USB Accessory is null");
-		}
-
-		this.serverController.displayIP();
+		usbAccessoryManager.reOpenAccessory();
+		// this.rcServerController.displayIP();
 	}
 
 	@Override
 	public void onPause() {
 		super.onPause();
-		closeAccessory();
+		usbAccessoryManager.closeUsbAccessory();
+		arduinoController.usbAccessoryDetached();
+		rcServerController.usbAccessoryDetached();
 		wakeLock.release();
 	}
 
 	@Override
 	public void onDestroy() {
-		unregisterReceiver(mUsbReceiver);
+		this.usbAccessoryManager.unregisterReceiver();
 		super.onDestroy();
-	}
-
-	private void openAccessory(UsbAccessory accessory) {
-		Log.d(TAG, "openAccessory: " + accessory);
-		fileDescriptor = usbManager.openAccessory(accessory);
-		if (fileDescriptor != null) {
-			usbAccessory = accessory;
-			FileDescriptor fd = fileDescriptor.getFileDescriptor();
-			inputStream = new FileInputStream(fd);
-			outputStream = new FileOutputStream(fd);
-			usbAccessoryCommunication = new UsbAccessoryCommunication(inputStream, outputStream, handler);
-			Thread thread = new Thread(null, usbAccessoryCommunication, "UsbAccessoryThread");
-			thread.start();
-			Log.d(TAG, "USB Accessory opened");
-		} else {
-			Log.d(TAG, "USB Accessory open fail");
-		}
-	}
-
-	private void closeAccessory() {
-		try {
-			if (fileDescriptor != null) {
-				fileDescriptor.close();
-			}
-		} catch (IOException e) {
-		} finally {
-			fileDescriptor = null;
-			usbAccessory = null;
-		}
-		arduinoController.usbAccessoryDetached();
-		serverController.usbAccessoryDetached();
+		this.doUnbindService();
 	}
 
 	@Override
@@ -244,8 +169,7 @@ public class ArduinoADKActivity extends Activity implements SimpleGestureListene
 			quit();
 			return true;
 		case R.id.menu_test:
-			// TestUtils.test(handler);
-			startService(new Intent(this, RemoteControlService.class));
+			TestUtils.test(handler);
 			return true;
 		case R.id.menu_settings:
 			startActivity(new Intent(this, SettingsActivity.class));
@@ -258,60 +182,43 @@ public class ArduinoADKActivity extends Activity implements SimpleGestureListene
 		}
 	}
 
+	/** Defines callbacks for service binding, passed to bindService() */
+	private ServiceConnection mConnection = new ServiceConnection() {
+
+		@Override
+		public void onServiceConnected(ComponentName className, IBinder service) {
+			// We've bound to LocalService, cast the IBinder and get
+			// LocalService instance
+			LocalBinder binder = (LocalBinder) service;
+			remoteControlService = binder.getService();
+			mIsBound = true;
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName arg0) {
+			mIsBound = false;
+		}
+	};
+
 	private void quit() {
 		finish();
 		System.exit(0);
 	}
 
 	public void logServerConsole(String message) {
-		serverController.logConsole(message);
+		rcServerController.logConsole(message);
 	}
 
-	protected void initControllers() {
+	private void initControllers() {
 		arduinoController = new ArduinoController(this);
 		arduinoController.usbAccessoryAttached();
 
-		serverController = new RemoteControlServerController(this);
-		serverController.usbAccessoryAttached();
+		rcServerController = new RemoteControlServerController(this);
+		rcServerController.usbAccessoryAttached();
 	}
 
 	private void handleTelemetryMessage(ArduinoMessage message) {
 		arduinoController.setRadarPosition(message.getDegree(), message.getDistance());
-	}
-
-	public UsbAccessoryCommunication getUsbAccessoryCommunication() {
-		return usbAccessoryCommunication;
-	}
-
-	@Override
-	public void onSwipe(int direction) {
-		String str = "";
-		switch (direction) {
-		case SimpleGestureFilter.SWIPE_RIGHT:
-			str = "Swipe Right";
-			break;
-		case SimpleGestureFilter.SWIPE_LEFT:
-			str = "Swipe Left";
-			break;
-		case SimpleGestureFilter.SWIPE_DOWN:
-			str = "Swipe Down";
-			break;
-		case SimpleGestureFilter.SWIPE_UP:
-			str = "Swipe Up";
-			break;
-		}
-		Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
-	}
-
-	@Override
-	public void onDoubleTap() {
-		Toast.makeText(this, "Double Tap", Toast.LENGTH_SHORT).show();
-	}
-
-	@Override
-	public boolean dispatchTouchEvent(MotionEvent me) {
-		this.detector.onTouchEvent(me);
-		return super.dispatchTouchEvent(me);
 	}
 
 }

@@ -10,8 +10,7 @@ public class ArduinoADKMainActivity extends Activity {
 	static final String TAG = "ArduinoADKMainActivity";
 
 	public static Intent createIntent(Activity activity) {
-		Log.i(TAG, "Starting phone UI");
-		return new Intent(activity, ArduinoADKPhone.class);
+		return new Intent(activity, ArduinoADKActivity.class);
 	}
 
 	@Override

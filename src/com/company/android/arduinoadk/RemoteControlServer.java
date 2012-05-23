@@ -12,7 +12,7 @@ import android.os.HandlerThread;
 import android.util.Log;
 
 import com.company.android.arduinoadk.libarduino.ArduinoManager;
-import com.company.android.arduinoadk.libusb.UsbAccessoryCommunication;
+import com.company.android.arduinoadk.libusb.UsbAccessoryManager;
 
 /**
  * 
@@ -39,11 +39,11 @@ public class RemoteControlServer extends HandlerThread implements Runnable {
 		super("RemoteControllerServer");
 	}
 
-	public RemoteControlServer(UsbAccessoryCommunication usbAccessoryCommunication, int port, Handler handler) {
+	public RemoteControlServer(UsbAccessoryManager usbAccessoryCommunication, int port, Handler handler) {
 		this();
+		this.arduinoManager = new ArduinoManager(usbAccessoryCommunication);
 		this.port = port;
 		this.handler = handler;
-		this.arduinoManager = new ArduinoManager(usbAccessoryCommunication);
 	}
 
 	@Override

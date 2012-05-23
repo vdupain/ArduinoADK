@@ -15,7 +15,7 @@ import android.widget.TextView;
 public class RemoteControlServerController extends AbstractController {
 	private final String TAG = "ServerController";
 
-	private static RemoteControlServer server;
+	private RemoteControlServer remoteControlServer;
 	private TextView console;
 	private TextView ip;
 
@@ -23,18 +23,18 @@ public class RemoteControlServerController extends AbstractController {
 		super(activity);
 		console = (TextView) findViewById(R.id.console);
 		ip = (TextView) findViewById(R.id.ip);
+	}
+
+	@Override
+	protected void onUsbAccessoryAttached() {
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this.activity);
 		int port = Integer.parseInt(preferences.getString("tcp_port", "12345"));
-		server = new RemoteControlServer(this.activity.usbAccessoryCommunication, port, this.activity.handler);
+		remoteControlServer = new RemoteControlServer(this.activity.usbAccessoryManager, port, this.activity.handler);
+		remoteControlServer.start();
 	}
 
 	@Override
-	protected void onUsbAccesssoryAttached() {
-		server.start();
-	}
-
-	@Override
-	protected void onUsbAccesssoryDetached() {
+	protected void onUsbAccessoryDetached() {
 	}
 
 	public void displayIP() {
@@ -50,7 +50,7 @@ public class RemoteControlServerController extends AbstractController {
 				inetAddress = InetAddress.getByAddress(byteaddr);
 				ip.setText("tcp://");
 				ip.append(inetAddress.getHostAddress());
-				ip.append(":" + this.server.getPort() + "/");
+				ip.append(":" + this.getRemoteControlServer().getPort() + "/");
 			} catch (UnknownHostException e) {
 				Log.e(TAG, e.getMessage(), e);
 				ip.setText(e.getMessage());
@@ -66,6 +66,10 @@ public class RemoteControlServerController extends AbstractController {
 			console.setText(t.substring(t.indexOf("\n") + 1, t.length()));
 		}
 		console.append(Html.fromHtml(message + "<br />"));
+	}
+
+	public RemoteControlServer getRemoteControlServer() {
+		return remoteControlServer;
 	}
 
 }

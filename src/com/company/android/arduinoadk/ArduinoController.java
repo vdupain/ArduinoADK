@@ -9,11 +9,11 @@ public class ArduinoController extends AbstractController {
 	}
 
 	@Override
-	protected void onUsbAccesssoryAttached() {
+	protected void onUsbAccessoryAttached() {
 	}
 
 	@Override
-	protected void onUsbAccesssoryDetached() {
+	protected void onUsbAccessoryDetached() {
 
 	}
 
