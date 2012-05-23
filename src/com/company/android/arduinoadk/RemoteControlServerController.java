@@ -27,10 +27,12 @@ public class RemoteControlServerController extends AbstractController {
 
 	@Override
 	protected void onUsbAccessoryAttached() {
+		/*
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this.activity);
 		int port = Integer.parseInt(preferences.getString("tcp_port", "12345"));
 		remoteControlServer = new RemoteControlServer(this.activity.usbAccessoryManager, port, this.activity.handler);
 		remoteControlServer.start();
+		*/
 	}
 
 	@Override

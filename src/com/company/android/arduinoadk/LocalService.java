@@ -5,54 +5,56 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.os.Binder;
 import android.os.IBinder;
 import android.widget.Toast;
 
-public class RemoteControlService extends Service {
-	private static final String TAG = "RemoteControlService";
+import com.company.android.arduinoadk.libusb.UsbAccessoryManager;
+
+public class LocalService extends Service {
+
+	private static final String TAG = "LocalService";
 	// Unique Identification Number for the Notification.
 	// We use it on Notification start, and to cancel it.
 	private int NOTIFICATION = R.string.rcserver_service_started;
-	public RemoteControlServer remoteControlServer;
+	private Thread rcServer;
 
 	/** For showing and hiding our notification. */
 	NotificationManager mNM;
-
-	// Binder given to clients
-	private final IBinder mBinder = new LocalBinder();
-
-	/**
-	 * Class used for the client Binder. Because we know this service always
-	 * runs in the same process as its clients, we don't need to deal with IPC.
-	 */
-	public class LocalBinder extends Binder {
-		RemoteControlService getService() {
-			// Return this instance of LocalService so clients can call public
-			// methods
-			return RemoteControlService.this;
-		}
-	}
+	private UsbAccessoryManager usbAccessoryManager;
 
 	@Override
 	public void onCreate() {
 		mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 		// Display a notification about us starting.
 		showNotification();
+		usbAccessoryManager = new UsbAccessoryManager(this.getApplicationContext(), null);
+		usbAccessoryManager.setupAccessory(null);
+		usbAccessoryManager.reOpenAccessory();
+
+		rcServer = new RemoteControlServer(this.usbAccessoryManager, 12345, null);
+		rcServer.start();
 	}
 
 	@Override
 	public void onDestroy() {
 		// Cancel the persistent notification.
 		mNM.cancel(NOTIFICATION);
-
 		// Tell the user we stopped.
 		Toast.makeText(this, R.string.rcserver_service_stopped, Toast.LENGTH_SHORT).show();
+		
+		usbAccessoryManager.closeUsbAccessory();
+		usbAccessoryManager.unregisterReceiver();
+	}
+
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		Toast.makeText(this, "onStartCommand", Toast.LENGTH_SHORT).show();
+		return super.onStartCommand(intent, flags, startId);
 	}
 
 	@Override
 	public IBinder onBind(Intent intent) {
-		return mBinder;
+		return null;
 	}
 
 	/**

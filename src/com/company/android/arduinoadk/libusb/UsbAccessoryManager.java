@@ -86,8 +86,11 @@ public class UsbAccessoryManager implements Runnable {
 			FileDescriptor fd = fileDescriptor.getFileDescriptor();
 			inputStream = new FileInputStream(fd);
 			outputStream = new FileOutputStream(fd);
-			Thread thread = new Thread(null, this, "UsbAccessoryThread");
-			thread.start();
+			
+			// FIXME pour le moment, pas de réception depuis l'Arduino
+			//Thread thread = new Thread(null, this, "UsbAccessoryThread");
+			//thread.start();
+
 			Log.d(TAG, "USB Accessory opened");
 		} else {
 			Log.d(TAG, "USB Accessory open fail");

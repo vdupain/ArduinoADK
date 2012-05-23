@@ -9,6 +9,7 @@ import java.net.Socket;
 
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Process;
 import android.util.Log;
 
 import com.company.android.arduinoadk.libarduino.ArduinoManager;
@@ -23,7 +24,7 @@ import com.company.android.arduinoadk.libusb.UsbAccessoryManager;
 public class RemoteControlServer extends HandlerThread implements Runnable {
 	private final String TAG = "RemoteControlServer";
 
-	private Handler handler;
+	// private Handler handler;
 	private int port;
 	private ServerSocket server;
 	private Socket client;
@@ -36,14 +37,14 @@ public class RemoteControlServer extends HandlerThread implements Runnable {
 	private ControllStick controllStick = new ControllStick();
 
 	public RemoteControlServer() {
-		super("RemoteControllerServer");
+		super("RemoteControllerServer", Process.THREAD_PRIORITY_MORE_FAVORABLE);
 	}
 
 	public RemoteControlServer(UsbAccessoryManager usbAccessoryCommunication, int port, Handler handler) {
 		this();
 		this.arduinoManager = new ArduinoManager(usbAccessoryCommunication);
 		this.port = port;
-		this.handler = handler;
+		// this.handler = handler;
 	}
 
 	@Override
@@ -57,8 +58,9 @@ public class RemoteControlServer extends HandlerThread implements Runnable {
 		}
 		log("Remote Control Server started...");
 		log("Accept client connection...");
-		while (handleClient())
-			;
+		while (handleClient()) {
+		}
+		;
 	}
 
 	private boolean handleClient() {
@@ -101,7 +103,7 @@ public class RemoteControlServer extends HandlerThread implements Runnable {
 		}
 
 		// Inform the UI Thread that communication has stopped
-		handler.obtainMessage(WhatAbout.SERVER_STOP.ordinal()).sendToTarget();
+		// handler.obtainMessage(WhatAbout.SERVER_STOP.ordinal()).sendToTarget();
 		try {
 			client.close();
 			log("Client disconnected");
@@ -163,7 +165,9 @@ public class RemoteControlServer extends HandlerThread implements Runnable {
 	 *            String to send to the UI Thread
 	 */
 	private void log(String msg) {
-		handler.obtainMessage(WhatAbout.SERVER_LOG.ordinal(), msg).sendToTarget();
+		Log.d(TAG, msg);
+		// handler.obtainMessage(WhatAbout.SERVER_LOG.ordinal(),
+		// msg).sendToTarget();
 	}
 
 	public int getPort() {
