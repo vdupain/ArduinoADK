@@ -8,7 +8,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import android.os.AsyncTask;
-import android.os.Handler;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
@@ -26,7 +25,6 @@ import com.company.android.arduinoadk.libusb.UsbAccessoryManager;
 public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 	private final String TAG = "RemoteControlServer";
 
-	// private Handler handler;
 	private int port;
 	private ServerSocket server;
 	private Socket client;
@@ -54,6 +52,7 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 		Log.d(TAG, "createServer");
 		try {
 			server = new ServerSocket(getPort());
+			server.setSoTimeout(1000);
 			log("Remote Control Server started...");
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
@@ -93,6 +92,7 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 			outputStream = client.getOutputStream();
 			log("Connection from " + getClientAddress().getHostAddress());
 			while (!isCancelled()) {
+				Log.d(TAG, "while handleClient:" + isCancelled());
 				try {
 					len = inputStream.read(buffer, 0, buffer.length);
 				} catch (IOException e) {
@@ -182,8 +182,10 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 	 *            String to send to the UI Thread
 	 */
 	private void log(String msg) {
-		Log.d(TAG, msg);
-		publishProgress(msg);
+		if (msg != null) {
+			Log.d(TAG, msg);
+			publishProgress(msg);
+		}
 	}
 
 	public int getPort() {
@@ -193,8 +195,10 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 	@Override
 	protected Void doInBackground(Void... params) {
 		Log.d(TAG, "doInBackground");
-		while (!isCancelled() && handleClient())
-			;
+		while (!isCancelled() && handleClient()) {
+			Log.d(TAG, "while doInBackground:" + isCancelled());
+		}
+		;
 		return null;
 	}
 
