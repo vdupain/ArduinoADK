@@ -74,6 +74,7 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 			server.close();
 			server = null;
 			log("Remote Control Server stopped...");
+			sendMessage("Remote Control Server stopped...");
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
 			log(e.getMessage());
@@ -207,7 +208,6 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 	@Override
 	protected void onProgressUpdate(String... values) {
 		sendMessage(values[0]);
-		super.onProgressUpdate(values);
 	}
 
 	private void sendMessage(String obj) {
