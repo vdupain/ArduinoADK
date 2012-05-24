@@ -17,7 +17,7 @@
     <string name="menu_test">Testing</string>
     <string name="menu_abouthelp">About &amp; Help</string>
     <string name="menu_quit">Quit</string>
-    <string name="local_service_started">Service started</string>
-    <string name="local_service_stopped">Service stopped</string>
-    <string name="local_service_label">ArduinoADK Service</string>
+    <string name="service_started">Service started</string>
+    <string name="service_stopped">Service stopped</string>
+    <string name="service_label">ArduinoADK</string>
 </resources>

@@ -21,7 +21,7 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Switch;
 import android.widget.Toast;
 
-import com.company.android.arduinoadk.LocalService.LocalServiceBinder;
+import com.company.android.arduinoadk.ArduinoADKService.ArduinoADKServiceBinder;
 
 public class ArduinoADKActivity extends Activity implements OnCheckedChangeListener {
 	private static final String TAG = ArduinoADKActivity.class.getSimpleName();
@@ -32,7 +32,7 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 
 	// Local Service
 	private boolean boundToLocalService;
-	private LocalService localService;
+	private ArduinoADKService localService;
 
 	private PowerManager.WakeLock wakeLock;
 
@@ -49,6 +49,19 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 			case SERVER_START:
 				break;
 			case SERVER_STOP:
+				break;
+			default:
+				break;
+			}
+		}
+	};
+
+	protected Handler arduinoHandler = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			switch (WhatAbout.values()[msg.what]) {
+			case TELEMETRY:
+				handleTelemetryMessage((ArduinoMessage) msg.obj);
 				break;
 			default:
 				break;
@@ -76,10 +89,10 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 	}
 
 	private void createAndBindLocalService() {
-		Intent intent = new Intent(this, LocalService.class);
+		Intent intent = new Intent(this, ArduinoADKService.class);
 		// Create a new Messenger for the communication back
-		Messenger messenger = new Messenger(handler);
-		intent.putExtra("MESSENGER", messenger);
+		intent.putExtra("MESSENGER", new Messenger(handler));
+		intent.putExtra("MESSENGER_ARDUINO", new Messenger(handler));
 		startService(intent);
 		// Bind from the service
 		boolean success = bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
@@ -136,7 +149,7 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 		public void onServiceConnected(ComponentName className, IBinder service) {
 			// We've bound to LocalService, cast the IBinder and get
 			// LocalService instance
-			LocalServiceBinder binder = (LocalServiceBinder) service;
+			ArduinoADKServiceBinder binder = (ArduinoADKServiceBinder) service;
 			localService = binder.getService();
 			switchRcServer.setChecked(localService.isRcServerStarted());
 			switchRcServer.setOnCheckedChangeListener(ArduinoADKActivity.this);
@@ -207,9 +220,8 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 	}
 
 	private void quit() {
-		// localService.getRcServer().stopServer();
 		doUnbindLocalService();
-		stopService(new Intent(this, LocalService.class));
+		stopService(new Intent(this, ArduinoADKService.class));
 		moveTaskToBack(true);
 	}
 

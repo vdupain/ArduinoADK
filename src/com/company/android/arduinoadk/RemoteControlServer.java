@@ -49,17 +49,30 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 		this.port = port;
 	}
 
-	public void createServer() {
+	private void createServer() {
 		Log.d(TAG, "createServer");
 		try {
 			server = new ServerSocket(getPort());
 			server.setSoTimeout(1000);
-			log("Remote Control Server started...");
+			log("RC Server started...");
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
 			log(e.getMessage());
 		}
 		log("Accept client connection...");
+	}
+
+	@Override
+	protected void onPostExecute(Void result) {
+		Log.d(TAG, "onPostExecute");
+		super.onPostExecute(result);
+	}
+
+	@Override
+	protected void onPreExecute() {
+		Log.d(TAG, "onPreExecute");
+		this.createServer();
+		super.onPreExecute();
 	}
 
 	@Override
@@ -70,11 +83,13 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 
 	private void stopServer() {
 		Log.d(TAG, "stopServer");
+		if (server == null)
+			return;
 		try {
 			server.close();
 			server = null;
-			log("Remote Control Server stopped...");
-			sendMessage("Remote Control Server stopped...");
+			Log.d(TAG, "RC Server stopped...");
+			sendMessage("RC Server stopped...");
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
 			log(e.getMessage());
@@ -84,17 +99,18 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 	}
 
 	private boolean handleClient() {
-		Log.d(TAG, "handleClient");
-		if (isCancelled())
+		//Log.d(TAG, "handleClient");
+		if (isCancelled() || server == null)
 			return false;
 		int len = 0;
 		try {
+			log("Waits for " +  server.getSoTimeout() + "ms an incoming request...");
 			client = server.accept();
 			inputStream = client.getInputStream();
 			outputStream = client.getOutputStream();
 			log("Connection from " + getClientAddress().getHostAddress());
 			while (!isCancelled()) {
-				Log.d(TAG, "while handleClient:" + isCancelled());
+				Log.d(TAG, "While handleClient:" + isCancelled());
 				try {
 					len = inputStream.read(buffer, 0, buffer.length);
 				} catch (IOException e) {
@@ -115,8 +131,9 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 				} else
 					commandUnknown();
 			}
-		} catch (SocketTimeoutException e) {
-			Log.d(TAG, "Socket Timeout");
+		} catch (SocketTimeoutException ignored) {
+			// FIXME
+			// Log.d(TAG, "No Client connection");
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
 			log(e.getMessage());
@@ -198,10 +215,8 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 	@Override
 	protected Void doInBackground(Void... params) {
 		Log.d(TAG, "doInBackground");
-		while (!isCancelled() && handleClient()) {
-			Log.d(TAG, "while doInBackground:" + isCancelled());
-		}
-		;
+		while (!isCancelled() && handleClient())
+			;
 		return null;
 	}
 
@@ -225,10 +240,6 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 
 	public void setMessenger(Messenger messenger) {
 		this.messenger = messenger;
-	}
-
-	public boolean isListen() {
-		return server != null && !server.isClosed();
 	}
 
 }
