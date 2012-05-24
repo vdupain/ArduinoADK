@@ -61,10 +61,6 @@ public class LocalService extends Service {
 		}
 		usbAccessoryManager.setupAccessory(null);
 		usbAccessoryManager.reOpenAccessory();
-
-		this.rcServer = new RemoteControlServer(this.usbAccessoryManager, 12345);
-		// rcServer.startServer();
-		// rcServer.execute();
 	}
 
 	@Override
@@ -93,7 +89,9 @@ public class LocalService extends Service {
 		if (extras != null) {
 			messenger = (Messenger) extras.get("MESSENGER");
 		}
-		getRcServer().setMessenger(messenger);
+		if (rcServer!=null) {
+			rcServer.setMessenger(messenger);
+		}
 		// We want this service to continue running until it is explicitly
 		// stopped, so return sticky.
 		return START_STICKY;
@@ -138,9 +136,22 @@ public class LocalService extends Service {
 	private void clearNotification() {
 		mNotificationManager.cancel(NOTIFICATION);
 	}
-	
+
 	public RemoteControlServer getRcServer() {
 		return rcServer;
 	}
 
+	public void startRcServer() {
+		rcServer = new RemoteControlServer(this.usbAccessoryManager, 12345);
+		rcServer.setMessenger(messenger);
+		rcServer.createServer();
+		rcServer.execute();
+	}
+
+	public void stopRcServer() {
+		if (rcServer != null) {
+			rcServer.cancel(true);
+			rcServer = null;
+		}
+	}
 }

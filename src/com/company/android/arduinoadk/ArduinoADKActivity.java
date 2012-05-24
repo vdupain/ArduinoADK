@@ -121,10 +121,9 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 		switch (buttonView.getId()) {
 		case R.id.switchRCServer:
 			if (buttonView.isChecked()) {
-				localService.getRcServer().createServer();
-				localService.getRcServer().execute();
+				localService.startRcServer();
 			} else {
-				localService.getRcServer().cancel(true);
+				localService.stopRcServer();
 			}
 			break;
 		}
@@ -139,7 +138,7 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 			// LocalService instance
 			LocalServiceBinder binder = (LocalServiceBinder) service;
 			localService = binder.getService();
-			//switchRcServer.setChecked(localService.getRcServer().isListen());
+			// switchRcServer.setChecked(localService.getRcServer().isListen());
 			switchRcServer.setOnCheckedChangeListener(ArduinoADKActivity.this);
 			boundToLocalService = true;
 		}
@@ -208,7 +207,7 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 	}
 
 	private void quit() {
-		//localService.getRcServer().stopServer();
+		// localService.getRcServer().stopServer();
 		doUnbindLocalService();
 		stopService(new Intent(this, LocalService.class));
 		moveTaskToBack(true);
