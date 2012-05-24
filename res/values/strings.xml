@@ -17,7 +17,7 @@
     <string name="menu_test">Testing</string>
     <string name="menu_abouthelp">About &amp; Help</string>
     <string name="menu_quit">Quit</string>
-    <string name="rcserver_service_started">RCServer service started</string>
-    <string name="rcserver_service_stopped">RCServer service stopped</string>
-    <string name="rcserver_service_label">RCServer service</string>
+    <string name="local_service_started">Service started</string>
+    <string name="local_service_stopped">Service stopped</string>
+    <string name="local_service_label">ArduinoADK Service</string>
 </resources>

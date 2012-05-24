@@ -11,6 +11,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.PowerManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -23,13 +24,13 @@ import android.widget.Toast;
 import com.company.android.arduinoadk.LocalService.LocalServiceBinder;
 
 public class ArduinoADKActivity extends Activity implements OnCheckedChangeListener {
-	private static final String TAG = "ArduinoADKActivity";
+	private static final String TAG = ArduinoADKActivity.class.getCanonicalName();
 
 	private ArduinoController arduinoController;
 	private RemoteControlServerController rcServerController;
 
 	// Local Service
-	private boolean bound;
+	private boolean boundToLocalService;
 	private LocalService localService;
 
 	private PowerManager.WakeLock wakeLock;
@@ -70,18 +71,47 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 
 		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 		wakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "com.company.android.arduinoadk.wakelock");
+
+		createAndBindLocalService();
+	}
+
+	private void createAndBindLocalService() {
+		Intent intent = new Intent(this, LocalService.class);
+		// Create a new Messenger for the communication back
+		Messenger messenger = new Messenger(handler);
+		intent.putExtra("MESSENGER", messenger);
+		startService(intent);
+		// Bind from the service
+		boolean success = bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+		if (!success) {
+			Log.e(TAG, "Failed to bind to local service");
+		}
 	}
 
 	@Override
 	protected void onStart() {
 		super.onStart();
-		startLocalService();
 	}
 
 	@Override
 	protected void onStop() {
 		super.onStop();
-		stopLocalService();
+		doUnbindLocalService();
+	}
+
+	/**
+	 * Disconnects from the local service.
+	 */
+	private void doUnbindLocalService() {
+		// Detach our existing connection
+		if (isBoundToLocalService()) {
+			unbindService(serviceConnection);
+			boundToLocalService = false;
+		}
+	}
+
+	private boolean isBoundToLocalService() {
+		return this.boundToLocalService;
 	}
 
 	@Override
@@ -89,33 +119,14 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 		switch (buttonView.getId()) {
 		case R.id.switchRCServer:
 			if (buttonView.isChecked()) {
-				//startLocalService();
+				// startLocalService();
 				localService.getRcServer().startServer();
 				localService.getRcServer().execute();
 			} else {
-				//stopLocalService();
+				// stopLocalService();
 				localService.getRcServer().stopServer();
 			}
 			break;
-		}
-	}
-
-	private void startLocalService() {
-		Intent intent = new Intent(this, LocalService.class);
-		// Create a new Messenger for the communication back
-		Messenger messenger = new Messenger(handler);
-		intent.putExtra("MESSENGER", messenger);
-		startService(intent);
-		// Bind from the service
-		bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
-	}
-
-	private void stopLocalService() {
-		//stopService(new Intent(this, LocalService.class));
-		// Unbind from the service
-		if (bound) {
-			unbindService(serviceConnection);
-			bound = false;
 		}
 	}
 
@@ -128,12 +139,12 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 			// LocalService instance
 			LocalServiceBinder binder = (LocalServiceBinder) service;
 			localService = binder.getService();
-			bound = true;
+			boundToLocalService = true;
 		}
 
 		@Override
 		public void onServiceDisconnected(ComponentName arg0) {
-			bound = false;
+			boundToLocalService = false;
 		}
 	};
 
@@ -192,8 +203,9 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 	}
 
 	private void quit() {
-		finish();
-		System.exit(0);
+		doUnbindLocalService();
+		stopService(new Intent(this, LocalService.class));
+		moveTaskToBack(true);
 	}
 
 	public void logConsole(String message) {
