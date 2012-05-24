@@ -21,7 +21,7 @@ import com.company.android.arduinoadk.libusb.UsbAccessoryManager;
  */
 public class LocalService extends Service {
 
-	private static final String TAG = LocalService.class.getCanonicalName();
+	private static final String TAG = LocalService.class.getSimpleName();
 
 	// Unique Identification Number for the Notification.
 	// We use it on Notification start, and to cancel it.
@@ -62,7 +62,7 @@ public class LocalService extends Service {
 		usbAccessoryManager.setupAccessory(null);
 		usbAccessoryManager.reOpenAccessory();
 
-		this.rcServer = new RemoteControlServer(this.usbAccessoryManager, 12345, null);
+		this.rcServer = new RemoteControlServer(this.usbAccessoryManager, 12345);
 		// rcServer.startServer();
 		// rcServer.execute();
 	}

@@ -44,14 +44,14 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 		super();
 	}
 
-	public RemoteControlServer(UsbAccessoryManager usbAccessoryCommunication, int port, Handler handler) {
+	public RemoteControlServer(UsbAccessoryManager usbAccessoryCommunication, int port) {
 		this();
 		this.arduinoManager = new ArduinoManager(usbAccessoryCommunication);
 		this.port = port;
-		// this.handler = handler;
 	}
 
-	public void startServer() {
+	public void createServer() {
+		Log.d(TAG, "createServer");
 		try {
 			server = new ServerSocket(getPort());
 			log("Remote Control Server started...");
@@ -62,7 +62,14 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 		log("Accept client connection...");
 	}
 
-	public void stopServer() {
+	@Override
+	protected void onPostExecute(Void result) {
+		Log.d(TAG, "onPostExecute");
+		stopServer();
+	}
+
+	private void stopServer() {
+		Log.d(TAG, "stopServer");
 		try {
 			server.close();
 			server = null;
@@ -76,56 +83,50 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 	}
 
 	private boolean handleClient() {
-		if (server == null || (server != null && server.isClosed()))
+		Log.d(TAG, "handleClient");
+		if (isCancelled())
 			return false;
 		int len = 0;
 		try {
 			client = server.accept();
 			inputStream = client.getInputStream();
 			outputStream = client.getOutputStream();
+			log("Connection from " + getClientAddress().getHostAddress());
+			while (!isCancelled()) {
+				try {
+					len = inputStream.read(buffer, 0, buffer.length);
+				} catch (IOException e) {
+					break;
+				}
+				if (len <= 0)
+					break;
+
+				request = new String(buffer, 0, len);
+				Log.d(TAG, request);
+				if (request.startsWith("STICK"))
+					commandStick();
+				else if (request.startsWith("HELP"))
+					commandHelp();
+				else if (request.startsWith("QUIT")) {
+					commandQuit();
+					break;
+				} else
+					commandUnknown();
+			}
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
 			log(e.getMessage());
 			return true;
 		} finally {
-			this.arduinoManager.sendSafeStickCommand();
-		}
-
-		log("Connection from " + getClientAddress().getHostAddress());
-
-		while (true) {
-			if (isCancelled())
-				return false;
-			;
-			try {
-				len = inputStream.read(buffer, 0, buffer.length);
-			} catch (IOException e) {
-				break;
+			if (client != null) {
+				try {
+					client.close();
+					log("Client disconnected");
+				} catch (IOException e) {
+					Log.e(TAG, e.getMessage(), e);
+					log(e.getMessage());
+				}
 			}
-			if (len <= 0)
-				break;
-
-			request = new String(buffer, 0, len);
-			Log.d(TAG, request);
-			if (request.startsWith("STICK"))
-				commandStick();
-			else if (request.startsWith("HELP"))
-				commandHelp();
-			else if (request.startsWith("QUIT")) {
-				commandQuit();
-				break;
-			} else
-				commandUnknown();
-		}
-
-		// Inform the UI Thread that communication has stopped
-		// handler.obtainMessage(WhatAbout.SERVER_STOP.ordinal()).sendToTarget();
-		try {
-			client.close();
-			log("Client disconnected");
-		} catch (IOException e) {
-			return true;
-		} finally {
 			this.arduinoManager.sendSafeStickCommand();
 		}
 		return true;
@@ -183,8 +184,6 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 	private void log(String msg) {
 		Log.d(TAG, msg);
 		publishProgress(msg);
-		// handler.obtainMessage(WhatAbout.SERVER_LOG.ordinal(),
-		// msg).sendToTarget();
 	}
 
 	public int getPort() {
@@ -193,8 +192,9 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 
 	@Override
 	protected Void doInBackground(Void... params) {
-		while (handleClient()) {
-		}
+		Log.d(TAG, "doInBackground");
+		while (!isCancelled() && handleClient())
+			;
 		return null;
 	}
 
@@ -215,6 +215,10 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 
 	public void setMessenger(Messenger messenger) {
 		this.messenger = messenger;
+	}
+
+	public boolean isListen() {
+		return server != null && !server.isClosed();
 	}
 
 }
