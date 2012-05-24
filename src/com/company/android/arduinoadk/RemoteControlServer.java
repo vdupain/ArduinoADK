@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 import android.os.AsyncTask;
 import android.os.Message;
@@ -62,8 +63,8 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 	}
 
 	@Override
-	protected void onPostExecute(Void result) {
-		Log.d(TAG, "onPostExecute");
+	protected void onCancelled(Void result) {
+		Log.d(TAG, "onCancelled");
 		stopServer();
 	}
 
@@ -113,6 +114,8 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 				} else
 					commandUnknown();
 			}
+		} catch (SocketTimeoutException e) {
+			Log.d(TAG, "Socket Timeout");
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
 			log(e.getMessage());
@@ -121,6 +124,7 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 			if (client != null) {
 				try {
 					client.close();
+					client = null;
 					log("Client disconnected");
 				} catch (IOException e) {
 					Log.e(TAG, e.getMessage(), e);
@@ -182,10 +186,8 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 	 *            String to send to the UI Thread
 	 */
 	private void log(String msg) {
-		if (msg != null) {
-			Log.d(TAG, msg);
-			publishProgress(msg);
-		}
+		Log.d(TAG, msg);
+		publishProgress(msg);
 	}
 
 	public int getPort() {
@@ -204,9 +206,14 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 
 	@Override
 	protected void onProgressUpdate(String... values) {
+		sendMessage(values[0]);
+		super.onProgressUpdate(values);
+	}
+
+	private void sendMessage(String obj) {
 		if (messenger != null) {
 			Message message = Message.obtain();
-			message.obj = values[0];
+			message.obj = obj;
 			message.what = WhatAbout.SERVER_LOG.ordinal();
 			try {
 				messenger.send(message);
@@ -214,7 +221,6 @@ public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 				Log.e(TAG, e.getMessage(), e);
 			}
 		}
-		super.onProgressUpdate(values);
 	}
 
 	public void setMessenger(Messenger messenger) {

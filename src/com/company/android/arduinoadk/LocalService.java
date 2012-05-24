@@ -72,9 +72,6 @@ public class LocalService extends Service {
 		// Tell the user we stopped.
 		Toast.makeText(this, R.string.local_service_stopped, Toast.LENGTH_SHORT).show();
 
-		// getRcServer().cancel(true);
-		// getRcServer().stopServer();
-
 		usbAccessoryManager.closeUsbAccessory();
 		usbAccessoryManager.unregisterReceiver();
 	}
@@ -89,7 +86,7 @@ public class LocalService extends Service {
 		if (extras != null) {
 			messenger = (Messenger) extras.get("MESSENGER");
 		}
-		if (rcServer!=null) {
+		if (rcServer != null) {
 			rcServer.setMessenger(messenger);
 		}
 		// We want this service to continue running until it is explicitly
@@ -137,15 +134,18 @@ public class LocalService extends Service {
 		mNotificationManager.cancel(NOTIFICATION);
 	}
 
-	public RemoteControlServer getRcServer() {
-		return rcServer;
-	}
-
 	public void startRcServer() {
 		rcServer = new RemoteControlServer(this.usbAccessoryManager, 12345);
 		rcServer.setMessenger(messenger);
 		rcServer.createServer();
 		rcServer.execute();
+	}
+
+	public boolean isRcServerStarted() {
+		if (rcServer != null)
+			return !rcServer.isCancelled();
+		else
+			return false;
 	}
 
 	public void stopRcServer() {

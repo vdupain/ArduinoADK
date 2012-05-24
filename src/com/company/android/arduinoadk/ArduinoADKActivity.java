@@ -138,7 +138,7 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 			// LocalService instance
 			LocalServiceBinder binder = (LocalServiceBinder) service;
 			localService = binder.getService();
-			// switchRcServer.setChecked(localService.getRcServer().isListen());
+			switchRcServer.setChecked(localService.isRcServerStarted());
 			switchRcServer.setOnCheckedChangeListener(ArduinoADKActivity.this);
 			boundToLocalService = true;
 		}
