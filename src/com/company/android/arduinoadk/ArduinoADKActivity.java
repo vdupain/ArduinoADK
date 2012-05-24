@@ -1,11 +1,15 @@
 package com.company.android.arduinoadk;
 
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
+import android.os.Messenger;
 import android.os.PowerManager;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -16,17 +20,19 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Switch;
 import android.widget.Toast;
 
+import com.company.android.arduinoadk.LocalService.LocalServiceBinder;
+
 public class ArduinoADKActivity extends Activity implements OnCheckedChangeListener {
 	private static final String TAG = "ArduinoADKActivity";
-
-	//private UsbAccessoryManager usbAccessoryManager;
 
 	private ArduinoController arduinoController;
 	private RemoteControlServerController rcServerController;
 
-	private PowerManager.WakeLock wakeLock;
+	// Local Service
+	private boolean bound;
+	private LocalService localService;
 
-	private LocalService remoteControlService;
+	private PowerManager.WakeLock wakeLock;
 
 	protected Handler handler = new Handler() {
 		@Override
@@ -36,11 +42,13 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 				handleTelemetryMessage((ArduinoMessage) msg.obj);
 				break;
 			case SERVER_LOG:
-				logServerConsole((String) msg.obj);
+				logConsole((String) msg.obj);
 				break;
 			case SERVER_START:
 				break;
 			case SERVER_STOP:
+				break;
+			default:
 				break;
 			}
 		}
@@ -50,8 +58,6 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		//usbAccessoryManager = new UsbAccessoryManager(this.getApplicationContext(), handler);
-		//usbAccessoryManager.setupAccessory((UsbAccessory) this.getLastNonConfigurationInstance());
 
 		setContentView(R.layout.main);
 		findViewById(R.id.container1).setVisibility(View.VISIBLE);
@@ -69,11 +75,13 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 	@Override
 	protected void onStart() {
 		super.onStart();
+		startLocalService();
 	}
 
 	@Override
 	protected void onStop() {
 		super.onStop();
+		stopLocalService();
 	}
 
 	@Override
@@ -81,62 +89,71 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 		switch (buttonView.getId()) {
 		case R.id.switchRCServer:
 			if (buttonView.isChecked()) {
-				startLocalService();
+				//startLocalService();
+				localService.getRcServer().startServer();
+				localService.getRcServer().execute();
 			} else {
-				stopLocalService();
+				//stopLocalService();
+				localService.getRcServer().stopServer();
 			}
 			break;
 		}
 	}
 
-	Intent serviceIntent;
-
 	private void startLocalService() {
-		if (serviceIntent == null) {
-			serviceIntent = new Intent(this, LocalService.class);
-			startService(serviceIntent);
-		}
+		Intent intent = new Intent(this, LocalService.class);
+		// Create a new Messenger for the communication back
+		Messenger messenger = new Messenger(handler);
+		intent.putExtra("MESSENGER", messenger);
+		startService(intent);
+		// Bind from the service
+		bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
 	}
 
 	private void stopLocalService() {
-		if (serviceIntent != null)
-			stopService(serviceIntent);
-		serviceIntent = null;
-	}
-
-/*
-	@Override
-	public Object onRetainNonConfigurationInstance() {
-		if (this.usbAccessoryManager.getUsbAccessory() != null) {
-			return this.usbAccessoryManager.getUsbAccessory();
-		} else {
-			return super.onRetainNonConfigurationInstance();
+		//stopService(new Intent(this, LocalService.class));
+		// Unbind from the service
+		if (bound) {
+			unbindService(serviceConnection);
+			bound = false;
 		}
 	}
-*/
-	
+
+	/** Defines callbacks for service binding, passed to bindService() */
+	private ServiceConnection serviceConnection = new ServiceConnection() {
+
+		@Override
+		public void onServiceConnected(ComponentName className, IBinder service) {
+			// We've bound to LocalService, cast the IBinder and get
+			// LocalService instance
+			LocalServiceBinder binder = (LocalServiceBinder) service;
+			localService = binder.getService();
+			bound = true;
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName arg0) {
+			bound = false;
+		}
+	};
+
 	@Override
 	public void onResume() {
 		super.onResume();
 		wakeLock.acquire();
-		//usbAccessoryManager.reOpenAccessory();
-		// this.rcServerController.displayIP();
 	}
 
 	@Override
 	public void onPause() {
 		super.onPause();
-		//usbAccessoryManager.closeUsbAccessory();
 		arduinoController.usbAccessoryDetached();
-		//rcServerController.usbAccessoryDetached();
+		rcServerController.usbAccessoryDetached();
 		wakeLock.release();
 	}
 
 	@Override
 	public void onDestroy() {
-		//this.usbAccessoryManager.unregisterReceiver();
 		super.onDestroy();
-		//this.stopLocalService();
 	}
 
 	@Override
@@ -179,7 +196,7 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 		System.exit(0);
 	}
 
-	public void logServerConsole(String message) {
+	public void logConsole(String message) {
 		rcServerController.logConsole(message);
 	}
 
@@ -188,7 +205,7 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 		arduinoController.usbAccessoryAttached();
 
 		rcServerController = new RemoteControlServerController(this);
-		//rcServerController.usbAccessoryAttached();
+		rcServerController.usbAccessoryAttached();
 	}
 
 	private void handleTelemetryMessage(ArduinoMessage message) {

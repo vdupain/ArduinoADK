@@ -7,9 +7,11 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import android.os.AsyncTask;
 import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Process;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.util.Log;
 
 import com.company.android.arduinoadk.libarduino.ArduinoManager;
@@ -21,7 +23,7 @@ import com.company.android.arduinoadk.libusb.UsbAccessoryManager;
  * 
  */
 
-public class RemoteControlServer extends HandlerThread implements Runnable {
+public class RemoteControlServer extends AsyncTask<Void, String, Void> {
 	private final String TAG = "RemoteControlServer";
 
 	// private Handler handler;
@@ -36,8 +38,10 @@ public class RemoteControlServer extends HandlerThread implements Runnable {
 	private ArduinoManager arduinoManager;
 	private ControllStick controllStick = new ControllStick();
 
+	private Messenger messenger;
+
 	public RemoteControlServer() {
-		super("RemoteControllerServer", Process.THREAD_PRIORITY_MORE_FAVORABLE);
+		super();
 	}
 
 	public RemoteControlServer(UsbAccessoryManager usbAccessoryCommunication, int port, Handler handler) {
@@ -47,25 +51,34 @@ public class RemoteControlServer extends HandlerThread implements Runnable {
 		// this.handler = handler;
 	}
 
-	@Override
-	public void run() {
+	public void startServer() {
 		try {
 			server = new ServerSocket(getPort());
+			log("Remote Control Server started...");
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
 			log(e.getMessage());
-			return;
 		}
-		log("Remote Control Server started...");
 		log("Accept client connection...");
-		while (handleClient()) {
+	}
+
+	public void stopServer() {
+		try {
+			server.close();
+			server = null;
+			log("Remote Control Server stopped...");
+		} catch (IOException e) {
+			Log.e(TAG, e.getMessage(), e);
+			log(e.getMessage());
+		} finally {
+			this.arduinoManager.sendSafeStickCommand();
 		}
-		;
 	}
 
 	private boolean handleClient() {
+		if (server == null || (server != null && server.isClosed()))
+			return false;
 		int len = 0;
-
 		try {
 			client = server.accept();
 			inputStream = client.getInputStream();
@@ -81,6 +94,9 @@ public class RemoteControlServer extends HandlerThread implements Runnable {
 		log("Connection from " + getClientAddress().getHostAddress());
 
 		while (true) {
+			if (isCancelled())
+				return false;
+			;
 			try {
 				len = inputStream.read(buffer, 0, buffer.length);
 			} catch (IOException e) {
@@ -166,12 +182,39 @@ public class RemoteControlServer extends HandlerThread implements Runnable {
 	 */
 	private void log(String msg) {
 		Log.d(TAG, msg);
+		publishProgress(msg);
 		// handler.obtainMessage(WhatAbout.SERVER_LOG.ordinal(),
 		// msg).sendToTarget();
 	}
 
 	public int getPort() {
 		return port;
+	}
+
+	@Override
+	protected Void doInBackground(Void... params) {
+		while (handleClient()) {
+		}
+		return null;
+	}
+
+	@Override
+	protected void onProgressUpdate(String... values) {
+		if (messenger != null) {
+			Message message = Message.obtain();
+			message.obj = values[0];
+			message.what = WhatAbout.SERVER_LOG.ordinal();
+			try {
+				messenger.send(message);
+			} catch (RemoteException e) {
+				Log.e(TAG, e.getMessage(), e);
+			}
+		}
+		super.onProgressUpdate(values);
+	}
+
+	public void setMessenger(Messenger messenger) {
+		this.messenger = messenger;
 	}
 
 }

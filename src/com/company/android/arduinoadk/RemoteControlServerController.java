@@ -4,10 +4,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.preference.PreferenceManager;
 import android.text.Html;
 import android.util.Log;
 import android.widget.TextView;
@@ -27,12 +25,6 @@ public class RemoteControlServerController extends AbstractController {
 
 	@Override
 	protected void onUsbAccessoryAttached() {
-		/*
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this.activity);
-		int port = Integer.parseInt(preferences.getString("tcp_port", "12345"));
-		remoteControlServer = new RemoteControlServer(this.activity.usbAccessoryManager, port, this.activity.handler);
-		remoteControlServer.start();
-		*/
 	}
 
 	@Override

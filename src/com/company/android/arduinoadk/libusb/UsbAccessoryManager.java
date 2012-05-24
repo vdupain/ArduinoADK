@@ -87,7 +87,8 @@ public class UsbAccessoryManager implements Runnable {
 			inputStream = new FileInputStream(fd);
 			outputStream = new FileOutputStream(fd);
 			
-			// FIXME pour le moment, pas de réception depuis l'Arduino
+			// FIXME 
+			//pour le moment, pas de réception depuis l'Arduino
 			//Thread thread = new Thread(null, this, "UsbAccessoryThread");
 			//thread.start();
 
