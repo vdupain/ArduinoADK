@@ -24,7 +24,7 @@ public class UsbAccessoryService extends Service {
 
 	// Unique Identification Number for the Notification.
 	// We use it on Notification start, and to cancel it.
-	private int NOTIFICATION = R.string.service_started;
+	private int NOTIFICATION = R.string.usb_service_started;
 
 	// Binder given to clients
 	private final IBinder binder = new UsbAccessoryBinder();
@@ -68,7 +68,7 @@ public class UsbAccessoryService extends Service {
 		// Cancel the persistent notification.
 		clearNotification();
 		// Tell the user we stopped.
-		Toast.makeText(this, R.string.service_stopped, Toast.LENGTH_SHORT).show();
+		Toast.makeText(this, R.string.usb_service_stopped, Toast.LENGTH_SHORT).show();
 
 		usbAccessoryManager.closeUsbAccessory();
 		usbAccessoryManager.unregisterReceiver();
@@ -107,13 +107,13 @@ public class UsbAccessoryService extends Service {
 	 * Show a notification while this service is running.
 	 */
 	private void showNotification() {
-		CharSequence text = getText(R.string.service_started);
+		CharSequence text = getText(R.string.usb_service_started);
 		Notification notification = new Notification(R.drawable.ic_launcher, text, System.currentTimeMillis());
 		// The PendingIntent to launch our activity if the user selects this
 		// notification
 		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, ArduinoADKMainActivity.class), 0);
 		// Set the info for the views that show in the notification panel.
-		notification.setLatestEventInfo(this, getText(R.string.service_label), text, contentIntent);
+		notification.setLatestEventInfo(this, getText(R.string.usb_service_label), text, contentIntent);
 		// Send the notification.
 		// We use a string id because it is a unique number. We use it later to
 		// cancel.

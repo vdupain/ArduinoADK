@@ -17,7 +17,13 @@
     <string name="menu_test">Testing</string>
     <string name="menu_abouthelp">About &amp; Help</string>
     <string name="menu_quit">Quit</string>
-    <string name="service_started">Service started</string>
-    <string name="service_stopped">Service stopped</string>
+    <string name="rc_service_started">RC Service started</string>
+    <string name="rc_service_stopped">RC Service stopped</string>
+    <string name="rc_service_label">ArduinoADK RC</string>
+    <string name="usb_service_started">Usb Accessory Service started</string>
+    <string name="usb_service_stopped">Service stopped</string>
+    <string name="usb_service_label">ArduinoADK Usb Accessory</string>
+    <string name="service_started">ArduinoADK Service started</string>
+    <string name="service_stopped">ArduinoADK Service stopped</string>
     <string name="service_label">ArduinoADK</string>
 </resources>

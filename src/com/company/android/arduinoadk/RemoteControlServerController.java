@@ -3,8 +3,6 @@ package com.company.android.arduinoadk;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import com.company.android.arduinoadk.remotecontrol.RemoteControlServer;
-
 import android.content.Context;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -15,7 +13,6 @@ import android.widget.TextView;
 public class RemoteControlServerController extends AbstractController {
 	private final String TAG = "ServerController";
 
-	private RemoteControlServer remoteControlServer;
 	private TextView console;
 	private TextView ip;
 
@@ -46,7 +43,7 @@ public class RemoteControlServerController extends AbstractController {
 				inetAddress = InetAddress.getByAddress(byteaddr);
 				ip.setText("tcp://");
 				ip.append(inetAddress.getHostAddress());
-				ip.append(":" + this.getRemoteControlServer().getPort() + "/");
+				ip.append(":" + "12345" + "/");
 			} catch (UnknownHostException e) {
 				Log.e(TAG, e.getMessage(), e);
 				ip.setText(e.getMessage());
@@ -62,10 +59,6 @@ public class RemoteControlServerController extends AbstractController {
 			console.setText(t.substring(t.indexOf("\n") + 1, t.length()));
 		}
 		console.append(Html.fromHtml(message + "<br />"));
-	}
-
-	public RemoteControlServer getRemoteControlServer() {
-		return remoteControlServer;
 	}
 
 }

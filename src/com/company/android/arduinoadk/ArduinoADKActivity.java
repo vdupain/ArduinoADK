@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.os.Messenger;
 import android.os.PowerManager;
 import android.util.Log;
 import android.view.Menu;
@@ -104,8 +103,6 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 		}
 
 		intent = new Intent(this, RemoteControlService.class);
-		// Create a new Messenger for the communication back
-		intent.putExtra("MESSENGER", new Messenger(handler));
 		startService(intent);
 		// Bind from the service
 		success = bindService(intent, remoteControlServiceConnection, Context.BIND_AUTO_CREATE);
@@ -251,21 +248,18 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 		}
 
 		// switch between the different services
-		// switch between the different services
 		if (binder instanceof UsbAccessoryBinder) {
 			usbAccessoryManager = ((UsbAccessoryBinder) binder).getUsbAccessoryManager();
-			if (remoteControlManager != null)
-				remoteControlManager.setUsbAccessoryManager(this.usbAccessoryManager);
 		}
-		// switch between the different services
 		if (binder instanceof RemoteControlBinder) {
 			remoteControlManager = ((RemoteControlBinder) binder).getRCServerManager();
 			if (usbAccessoryManager != null)
 				remoteControlManager.setUsbAccessoryManager(this.usbAccessoryManager);
 			switchRcServer.setChecked(remoteControlManager.isStarted());
 			switchRcServer.setOnCheckedChangeListener(ArduinoADKActivity.this);
+			RemoteControlService service = ((RemoteControlBinder) binder).getService();
+			service.setActivity(this);
 		}
-
 	}
 
 }

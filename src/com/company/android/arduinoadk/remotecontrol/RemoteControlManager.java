@@ -1,26 +1,23 @@
 package com.company.android.arduinoadk.remotecontrol;
 
-import android.os.Messenger;
+import android.os.Handler;
 
 import com.company.android.arduinoadk.usb.UsbAccessoryManager;
 
 public class RemoteControlManager {
 
-	private RemoteControlServer rcServer;
+	private RemoteControlHandlerThread rcServer;
 	private UsbAccessoryManager usbAccessoryManager;
-	private Messenger messenger;
+	private final Handler messageHandler;
 
-	public RemoteControlManager() {
-	}
-
-	public RemoteControlManager(UsbAccessoryManager usbAccessoryManager) {
-		this.usbAccessoryManager = usbAccessoryManager;
+	public RemoteControlManager(Handler messageHandler) {
+		this.messageHandler = messageHandler;
 	}
 
 	public void start() {
-		rcServer = new RemoteControlServer(this.usbAccessoryManager, 12345);
-		rcServer.setMessenger(messenger);
-		rcServer.execute();
+		rcServer = new RemoteControlHandlerThread(usbAccessoryManager, messageHandler, 12345);
+		rcServer.createServer();
+		rcServer.start();
 	}
 
 	public boolean isStarted() {
@@ -32,13 +29,9 @@ public class RemoteControlManager {
 
 	public void stop() {
 		if (rcServer != null) {
-			rcServer.cancel(true);
+			rcServer.stopServer();
 			rcServer = null;
 		}
-	}
-
-	public void setMessenger(Messenger messenger) {
-		this.messenger = messenger;
 	}
 
 	public void setUsbAccessoryManager(UsbAccessoryManager usbAccessoryManager) {
