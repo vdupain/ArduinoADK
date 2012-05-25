@@ -1,4 +1,4 @@
-package com.company.android.arduinoadk;
+package com.company.android.arduinoadk.remotecontrol;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -12,46 +12,38 @@ import android.os.Messenger;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.company.android.arduinoadk.remotecontrol.RemoteControlManager;
-import com.company.android.arduinoadk.usb.UsbAccessoryManager;
+import com.company.android.arduinoadk.ArduinoADKMainActivity;
+import com.company.android.arduinoadk.R;
 
 /**
- * This service is only used to contain the UsbAccessoryManager and
- * RemoteControlServer running in the background. To use it, you need to bind to
- * this service and get it from the binder.
+ * This service is only used to contain the RemoteControlServer running in the
+ * background. To use it, you need to bind to this service and get it from the
+ * binder.
  */
-public class ArduinoADKService extends Service {
+public class RemoteControlService extends Service {
 
-	private static final String TAG = ArduinoADKService.class.getSimpleName();
+	private static final String TAG = RemoteControlService.class.getSimpleName();
 
 	// Unique Identification Number for the Notification.
 	// We use it on Notification start, and to cancel it.
 	private int NOTIFICATION = R.string.service_started;
 
 	// Binder given to clients
-	private final IBinder binder = new ArduinoADKServiceBinder();
+	private final IBinder binder = new RemoteControlBinder();
 
 	/** For showing and hiding our notification. */
 	NotificationManager notificationManager;
 
-	private UsbAccessoryManager usbAccessoryManager;
-	private RemoteControlManager rcManager = null;
-
+	private RemoteControlManager remoteControlManager;
 	private Messenger messenger;
 
 	/**
 	 * Class used for the client Binder. Because we know this service always
 	 * runs in the same process as its clients, we don't need to deal with IPC.
 	 */
-	public class ArduinoADKServiceBinder extends Binder {
-		ArduinoADKService getService() {
-			// Return this instance of LocalService so clients can call public
-			// methods
-			return ArduinoADKService.this;
-		}
-
+	public class RemoteControlBinder extends Binder {
 		public RemoteControlManager getRCServerManager() {
-			return ArduinoADKService.this.rcManager;
+			return RemoteControlService.this.remoteControlManager;
 		}
 	}
 
@@ -60,14 +52,8 @@ public class ArduinoADKService extends Service {
 		// The service is being created
 		Log.d(TAG, "onCreate");
 
-		if (usbAccessoryManager == null) {
-			usbAccessoryManager = new UsbAccessoryManager(this.getApplicationContext(), null);
-		}
-		usbAccessoryManager.setupAccessory(null);
-		usbAccessoryManager.reOpenAccessory();
-
-		if (rcManager == null) {
-			rcManager = new RemoteControlManager(usbAccessoryManager);
+		if (remoteControlManager == null) {
+			remoteControlManager = new RemoteControlManager();
 		}
 
 		notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -84,10 +70,7 @@ public class ArduinoADKService extends Service {
 		// Tell the user we stopped.
 		Toast.makeText(this, R.string.service_stopped, Toast.LENGTH_SHORT).show();
 
-		rcManager.stop();
-
-		usbAccessoryManager.closeUsbAccessory();
-		usbAccessoryManager.unregisterReceiver();
+		remoteControlManager.stop();
 	}
 
 	@Override
@@ -100,7 +83,7 @@ public class ArduinoADKService extends Service {
 			Bundle extras = intent.getExtras();
 			if (extras != null) {
 				messenger = (Messenger) extras.get("MESSENGER");
-				rcManager.setMessenger(messenger);
+				remoteControlManager.setMessenger(messenger);
 			}
 		}
 		// We want this service to continue running until it is explicitly

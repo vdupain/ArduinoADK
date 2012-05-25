@@ -19,7 +19,12 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Switch;
 import android.widget.Toast;
 
-import com.company.android.arduinoadk.ArduinoADKService.ArduinoADKServiceBinder;
+import com.company.android.arduinoadk.remotecontrol.RemoteControlManager;
+import com.company.android.arduinoadk.remotecontrol.RemoteControlService;
+import com.company.android.arduinoadk.remotecontrol.RemoteControlService.RemoteControlBinder;
+import com.company.android.arduinoadk.usb.UsbAccessoryManager;
+import com.company.android.arduinoadk.usb.UsbAccessoryService;
+import com.company.android.arduinoadk.usb.UsbAccessoryService.UsbAccessoryBinder;
 
 public class ArduinoADKActivity extends Activity implements ServiceConnected, OnCheckedChangeListener {
 	private static final String TAG = ArduinoADKActivity.class.getSimpleName();
@@ -29,8 +34,11 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 	private Switch switchRcServer;
 
 	/** Defines callbacks for service binding, passed to bindService() */
-	private ArduinoADKServiceConnection serviceConnection = new ArduinoADKServiceConnection(this);
-	private RemoteControlManager rcManager;
+	private ArduinoADKServiceConnection usbServiceConnection = new ArduinoADKServiceConnection(this);
+	private ArduinoADKServiceConnection remoteControlServiceConnection = new ArduinoADKServiceConnection(this);
+
+	private RemoteControlManager remoteControlManager;
+	private UsbAccessoryManager usbAccessoryManager;
 
 	private PowerManager.WakeLock wakeLock;
 
@@ -87,15 +95,22 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 	}
 
 	private void createAndBindLocalService() {
-		Intent intent = new Intent(this, ArduinoADKService.class);
-		// Create a new Messenger for the communication back
-		intent.putExtra("MESSENGER", new Messenger(handler));
-		intent.putExtra("MESSENGER_ARDUINO", new Messenger(handler));
+		Intent intent = new Intent(this, UsbAccessoryService.class);
 		startService(intent);
 		// Bind from the service
-		boolean success = bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+		boolean success = bindService(intent, usbServiceConnection, Context.BIND_AUTO_CREATE);
 		if (!success) {
-			Log.e(TAG, "Failed to bind to local service");
+			Log.e(TAG, "Failed to bind to UsbAccessoryService");
+		}
+
+		intent = new Intent(this, RemoteControlService.class);
+		// Create a new Messenger for the communication back
+		intent.putExtra("MESSENGER", new Messenger(handler));
+		startService(intent);
+		// Bind from the service
+		success = bindService(intent, remoteControlServiceConnection, Context.BIND_AUTO_CREATE);
+		if (!success) {
+			Log.e(TAG, "Failed to bind to RemoteControlService");
 		}
 	}
 
@@ -118,13 +133,21 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 	private void doUnbindService() {
 		// Detach our existing connection
 		if (isBoundToRcManager()) {
-			unbindService(serviceConnection);
-			this.rcManager = null;
+			unbindService(remoteControlServiceConnection);
+			this.remoteControlManager = null;
+		}
+		if (isBoundToUsbAccessoryManager()) {
+			unbindService(usbServiceConnection);
+			this.usbAccessoryManager = null;
 		}
 	}
 
 	private boolean isBoundToRcManager() {
-		return this.rcManager != null;
+		return this.remoteControlManager != null;
+	}
+
+	private boolean isBoundToUsbAccessoryManager() {
+		return this.usbAccessoryManager != null;
 	}
 
 	@Override
@@ -132,9 +155,9 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 		switch (buttonView.getId()) {
 		case R.id.switchRCServer:
 			if (buttonView.isChecked()) {
-				rcManager.start();
+				remoteControlManager.start();
 			} else {
-				rcManager.stop();
+				remoteControlManager.stop();
 			}
 			break;
 		}
@@ -199,7 +222,8 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 
 	private void quit() {
 		doUnbindService();
-		stopService(new Intent(this, ArduinoADKService.class));
+		stopService(new Intent(this, RemoteControlService.class));
+		stopService(new Intent(this, UsbAccessoryService.class));
 		moveTaskToBack(true);
 	}
 
@@ -227,11 +251,21 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 		}
 
 		// switch between the different services
-		if (binder instanceof ArduinoADKServiceBinder) {
-			rcManager = ((ArduinoADKServiceBinder) binder).getRCServerManager();
-			switchRcServer.setChecked(rcManager.isStarted());
+		// switch between the different services
+		if (binder instanceof UsbAccessoryBinder) {
+			usbAccessoryManager = ((UsbAccessoryBinder) binder).getUsbAccessoryManager();
+			if (remoteControlManager != null)
+				remoteControlManager.setUsbAccessoryManager(this.usbAccessoryManager);
+		}
+		// switch between the different services
+		if (binder instanceof RemoteControlBinder) {
+			remoteControlManager = ((RemoteControlBinder) binder).getRCServerManager();
+			if (usbAccessoryManager != null)
+				remoteControlManager.setUsbAccessoryManager(this.usbAccessoryManager);
+			switchRcServer.setChecked(remoteControlManager.isStarted());
 			switchRcServer.setOnCheckedChangeListener(ArduinoADKActivity.this);
 		}
+
 	}
 
 }

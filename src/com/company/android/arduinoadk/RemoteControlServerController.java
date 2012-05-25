@@ -3,6 +3,8 @@ package com.company.android.arduinoadk;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import com.company.android.arduinoadk.remotecontrol.RemoteControlServer;
+
 import android.content.Context;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
