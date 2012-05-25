@@ -1,10 +1,8 @@
 package com.company.android.arduinoadk;
 
 import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -23,16 +21,16 @@ import android.widget.Toast;
 
 import com.company.android.arduinoadk.ArduinoADKService.ArduinoADKServiceBinder;
 
-public class ArduinoADKActivity extends Activity implements OnCheckedChangeListener {
+public class ArduinoADKActivity extends Activity implements ServiceConnected, OnCheckedChangeListener {
 	private static final String TAG = ArduinoADKActivity.class.getSimpleName();
 
 	private ArduinoController arduinoController;
 	private RemoteControlServerController rcServerController;
 	private Switch switchRcServer;
 
-	// Local Service
-	private boolean boundToLocalService;
-	private ArduinoADKService localService;
+	/** Defines callbacks for service binding, passed to bindService() */
+	private ArduinoADKServiceConnection serviceConnection = new ArduinoADKServiceConnection(this);
+	private RemoteControlManager rcManager;
 
 	private PowerManager.WakeLock wakeLock;
 
@@ -111,22 +109,22 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 	protected void onStop() {
 		Log.d(TAG, "onStop");
 		super.onStop();
-		doUnbindLocalService();
+		doUnbindService();
 	}
 
 	/**
 	 * Disconnects from the local service.
 	 */
-	private void doUnbindLocalService() {
+	private void doUnbindService() {
 		// Detach our existing connection
-		if (isBoundToLocalService()) {
+		if (isBoundToRcManager()) {
 			unbindService(serviceConnection);
-			boundToLocalService = false;
+			this.rcManager = null;
 		}
 	}
 
-	private boolean isBoundToLocalService() {
-		return this.boundToLocalService;
+	private boolean isBoundToRcManager() {
+		return this.rcManager != null;
 	}
 
 	@Override
@@ -134,33 +132,13 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 		switch (buttonView.getId()) {
 		case R.id.switchRCServer:
 			if (buttonView.isChecked()) {
-				localService.startRcServer();
+				rcManager.start();
 			} else {
-				localService.stopRcServer();
+				rcManager.stop();
 			}
 			break;
 		}
 	}
-
-	/** Defines callbacks for service binding, passed to bindService() */
-	private ServiceConnection serviceConnection = new ServiceConnection() {
-
-		@Override
-		public void onServiceConnected(ComponentName className, IBinder service) {
-			// We've bound to LocalService, cast the IBinder and get
-			// LocalService instance
-			ArduinoADKServiceBinder binder = (ArduinoADKServiceBinder) service;
-			localService = binder.getService();
-			switchRcServer.setChecked(localService.isRcServerStarted());
-			switchRcServer.setOnCheckedChangeListener(ArduinoADKActivity.this);
-			boundToLocalService = true;
-		}
-
-		@Override
-		public void onServiceDisconnected(ComponentName arg0) {
-			boundToLocalService = false;
-		}
-	};
 
 	@Override
 	public void onResume() {
@@ -220,7 +198,7 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 	}
 
 	private void quit() {
-		doUnbindLocalService();
+		doUnbindService();
 		stopService(new Intent(this, ArduinoADKService.class));
 		moveTaskToBack(true);
 	}
@@ -239,6 +217,21 @@ public class ArduinoADKActivity extends Activity implements OnCheckedChangeListe
 
 	private void handleTelemetryMessage(ArduinoMessage message) {
 		arduinoController.setRadarPosition(message.getDegree(), message.getDistance());
+	}
+
+	@Override
+	public void onConnected(IBinder binder) {
+		if (binder == null) {
+			Log.e(TAG, "Failed to get binder");
+			return;
+		}
+
+		// switch between the different services
+		if (binder instanceof ArduinoADKServiceBinder) {
+			rcManager = ((ArduinoADKServiceBinder) binder).getRCServerManager();
+			switchRcServer.setChecked(rcManager.isStarted());
+			switchRcServer.setOnCheckedChangeListener(ArduinoADKActivity.this);
+		}
 	}
 
 }

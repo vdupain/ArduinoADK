@@ -34,7 +34,7 @@ public class ArduinoADKService extends Service {
 	NotificationManager notificationManager;
 
 	private UsbAccessoryManager usbAccessoryManager;
-	private RemoteControlServer rcServer;
+	private RemoteControlManager rcManager = null;
 
 	private Messenger messenger;
 
@@ -48,20 +48,30 @@ public class ArduinoADKService extends Service {
 			// methods
 			return ArduinoADKService.this;
 		}
+
+		public RemoteControlManager getRCServerManager() {
+			return ArduinoADKService.this.rcManager;
+		}
 	}
 
 	@Override
 	public void onCreate() {
 		// The service is being created
 		Log.d(TAG, "onCreate");
-		notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-		// Display a notification about us starting.
-		showNotification();
+
 		if (usbAccessoryManager == null) {
 			usbAccessoryManager = new UsbAccessoryManager(this.getApplicationContext(), null);
 		}
 		usbAccessoryManager.setupAccessory(null);
 		usbAccessoryManager.reOpenAccessory();
+
+		if (rcManager == null) {
+			rcManager = new RemoteControlManager(usbAccessoryManager);
+		}
+
+		notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		// Display a notification about us starting.
+		showNotification();
 	}
 
 	@Override
@@ -72,6 +82,8 @@ public class ArduinoADKService extends Service {
 		clearNotification();
 		// Tell the user we stopped.
 		Toast.makeText(this, R.string.service_stopped, Toast.LENGTH_SHORT).show();
+
+		rcManager.stop();
 
 		usbAccessoryManager.closeUsbAccessory();
 		usbAccessoryManager.unregisterReceiver();
@@ -87,10 +99,7 @@ public class ArduinoADKService extends Service {
 			Bundle extras = intent.getExtras();
 			if (extras != null) {
 				messenger = (Messenger) extras.get("MESSENGER");
-				messenger = (Messenger) extras.get("MESSENGER_ARDUINO");
-				if (rcServer != null) {
-					rcServer.setMessenger(messenger);
-				}
+				rcManager.setMessenger(messenger);
 			}
 		}
 		// We want this service to continue running until it is explicitly
@@ -138,23 +147,4 @@ public class ArduinoADKService extends Service {
 		notificationManager.cancel(NOTIFICATION);
 	}
 
-	public void startRcServer() {
-		rcServer = new RemoteControlServer(this.usbAccessoryManager, 12345);
-		rcServer.setMessenger(messenger);
-		rcServer.execute();
-	}
-
-	public boolean isRcServerStarted() {
-		if (rcServer != null)
-			return !rcServer.isCancelled();
-		else
-			return false;
-	}
-
-	public void stopRcServer() {
-		if (rcServer != null) {
-			rcServer.cancel(true);
-			rcServer = null;
-		}
-	}
 }
