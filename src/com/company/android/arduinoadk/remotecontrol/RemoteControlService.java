@@ -27,7 +27,6 @@ public class RemoteControlService extends Service {
 
 	private Handler messageHandler = new Handler() {
 		public void handleMessage(Message msg) {
-			Log.d(TAG, msg.what + " " + msg.obj);
 			RemoteControlService.this.arduinoADKActivity.logConsole("" + msg.obj);
 		}
 	};

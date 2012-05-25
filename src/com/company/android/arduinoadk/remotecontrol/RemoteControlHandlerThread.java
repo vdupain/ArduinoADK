@@ -23,7 +23,6 @@ import com.company.android.arduinoadk.usb.UsbAccessoryManager;
  * Server implementation. One client handled at a time only
  * 
  */
-
 public class RemoteControlHandlerThread extends HandlerThread implements Runnable {
 
 	private final String TAG = "RemoteControlHandlerThread";
@@ -88,6 +87,8 @@ public class RemoteControlHandlerThread extends HandlerThread implements Runnabl
 		int len = 0;
 		try {
 			log("Waits for " + server.getSoTimeout() + "ms an incoming request...");
+			// non blocking socket to be able to stop thread by polling
+			// isCancelled method
 			client = server.accept();
 			inputStream = client.getInputStream();
 			outputStream = client.getOutputStream();
@@ -146,8 +147,7 @@ public class RemoteControlHandlerThread extends HandlerThread implements Runnabl
 		double actualY = Double.parseDouble(request.substring(request.indexOf("y=") + 2, request.indexOf("\n")));
 		controllStick.setX(actualX).setY(actualY);
 		this.arduinoManager.sendStickCommand(controllStick);
-		// log(this.getClientAddress().getHostAddress() + " - " +
-		// controllStick.toString());
+		log(this.getClientAddress().getHostAddress() + " - " + controllStick.toString());
 	}
 
 	private void commandHelp() {
@@ -188,24 +188,20 @@ public class RemoteControlHandlerThread extends HandlerThread implements Runnabl
 	/**
 	 * 
 	 * @param msg
-	 *            String to send to the UI Thread
 	 */
 	private void log(String msg) {
 		Log.d(TAG, msg);
 		sendMessage(msg);
 	}
 
+	private void sendMessage(String text) {
+		Message message = Message.obtain(messageHandler, WhatAbout.SERVER_LOG.ordinal(), text);
+		this.messageHandler.sendMessage(message);
+
+	}
+
 	public int getPort() {
 		return port;
 	}
 
-	private void sendMessage(String text) {
-		Message.obtain(messageHandler, WhatAbout.SERVER_LOG.ordinal(), text);
-		Message msg = new Message();
-		msg.obj = text;
-		msg.what = WhatAbout.SERVER_LOG.ordinal();
-		// mTaskMaster.getMessageHandler().sendMessage(msg);
-		this.messageHandler.sendMessage(msg);
-
-	}
 }
