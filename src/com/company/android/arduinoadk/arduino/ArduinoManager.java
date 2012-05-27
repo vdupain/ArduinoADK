@@ -8,7 +8,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import com.company.android.arduinoadk.ArduinoMessage;
 import com.company.android.arduinoadk.WhatAbout;
 import com.company.android.arduinoadk.usb.UsbAccessoryManager;
 
@@ -26,13 +25,15 @@ public class ArduinoManager implements Runnable {
 	}
 
 	public void sendSafeStickCommand() {
-		this.sendStickCommand(0.5, 0.5);
+		this.sendStickCommand(90, 90);
 	}
 
 	public void sendStickCommand(double valueX, double valueY) {
-		byte x = (byte) (valueX * 255);
-		byte y = (byte) (valueY * 255);
+		byte x = (byte) (valueX);
+		byte y = (byte) (valueY);
 		this.sendCommand((byte) 3, x, y);
+		//this.sendCommand((byte) 2, (byte) 0x01, x);
+		//this.sendCommand((byte) 2, (byte) 0x02, y);
 	}
 
 	@Override
@@ -59,8 +60,10 @@ public class ArduinoManager implements Runnable {
 						int angleServo1 = buffer[i + 1] & 0xFF;
 						int angleServo2 = buffer[i + 2] & 0xFF;
 						Log.d(TAG, "position servos:" + angleServo1 + " - " + angleServo2);
-						//Message message = Message.obtain(handler, WhatAbout.ARDUINO.ordinal(), angleServo1 + " - " + angleServo2);
-						//this.handler.sendMessage(message);
+						// Message message = Message.obtain(handler,
+						// WhatAbout.ARDUINO.ordinal(), angleServo1 + " - " +
+						// angleServo2);
+						// this.handler.sendMessage(message);
 					}
 					i += 3;
 					break;
@@ -70,8 +73,8 @@ public class ArduinoManager implements Runnable {
 						// unsigned byte on arduino and signed in Java so...
 						int degree = buffer[i + 1] & 0xFF;
 						int distance = buffer[i + 2] & 0xFF;
-						//m.obj = new ArduinoMessage(degree, distance);
-						//handler.sendMessage(m);
+						// m.obj = new ArduinoMessage(degree, distance);
+						// handler.sendMessage(m);
 					}
 					i += 3;
 					break;
