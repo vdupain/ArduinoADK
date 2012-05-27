@@ -12,9 +12,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbManager;
-import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.company.android.arduinoadk.arduino.ArduinoManager;
 
@@ -22,8 +22,6 @@ public class UsbAccessoryManager {
 	private static final String TAG = UsbAccessoryManager.class.getSimpleName();
 
 	private static final String ACTION_USB_PERMISSION = "com.company.android.arduinoadk.USB_PERMISSION";
-
-	private final Handler handler;
 
 	private UsbManager usbManager;
 	private PendingIntent permissionIntent;
@@ -58,9 +56,8 @@ public class UsbAccessoryManager {
 
 	private final Context context;
 
-	public UsbAccessoryManager(Context context, Handler handler) {
+	public UsbAccessoryManager(Context context) {
 		this.context = context;
-		this.handler = handler;
 	}
 
 	public void setupAccessory(UsbAccessory usbAccessoryRetainInstance) {
@@ -85,9 +82,10 @@ public class UsbAccessoryManager {
 			inputStream = new FileInputStream(fd);
 			outputStream = new FileOutputStream(fd);
 			// FIXME ArduinoManager
-			Thread thread = new Thread(null, new ArduinoManager(this, this.handler), "UsbAccessoryThread");
+			Thread thread = new Thread(null, new ArduinoManager(this), "UsbAccessoryThread");
 			thread.start();
 			Log.d(TAG, "USB Accessory opened");
+			Toast.makeText(this.context, "openUsbAccessory", Toast.LENGTH_SHORT).show();
 		} else {
 			Log.d(TAG, "USB Accessory open fail");
 		}
@@ -122,6 +120,7 @@ public class UsbAccessoryManager {
 			if (fileDescriptor != null) {
 				fileDescriptor.close();
 			}
+			Toast.makeText(this.context, "closeUsbAccessory", Toast.LENGTH_SHORT).show();
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
 		} finally {

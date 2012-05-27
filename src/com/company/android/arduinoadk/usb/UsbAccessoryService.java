@@ -58,7 +58,7 @@ public class UsbAccessoryService extends Service {
 		Log.d(TAG, "onCreate");
 
 		if (usbAccessoryManager == null) {
-			usbAccessoryManager = new UsbAccessoryManager(this.getApplicationContext(), messageHandler);
+			usbAccessoryManager = new UsbAccessoryManager(this.getApplicationContext());
 		}
 		usbAccessoryManager.setupAccessory(null);
 		usbAccessoryManager.reOpenAccessory();
@@ -108,6 +108,7 @@ public class UsbAccessoryService extends Service {
 	public boolean onUnbind(Intent intent) {
 		Log.d(TAG, "onUnbind");
 		return super.onUnbind(intent);
+		//return true;
 	}
 
 	/**

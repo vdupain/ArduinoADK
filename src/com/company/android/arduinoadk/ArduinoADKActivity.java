@@ -70,45 +70,75 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 		wakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "com.company.android.arduinoadk.wakelock");
 
-		createAndBindLocalService();
-	}
-
-	private void createAndBindLocalService() {
-		Intent intent = new Intent(this, UsbAccessoryService.class);
-		startService(intent);
-		// Bind from the service
-		boolean success = bindService(intent, usbServiceConnection, Context.BIND_AUTO_CREATE);
-		if (!success) {
-			Log.e(TAG, "Failed to bind to UsbAccessoryService");
-		}
-
-		intent = new Intent(this, RemoteControlService.class);
-		startService(intent);
-		// Bind from the service
-		success = bindService(intent, remoteControlServiceConnection, Context.BIND_AUTO_CREATE);
-		if (!success) {
-			Log.e(TAG, "Failed to bind to RemoteControlService");
-		}
+		createServices();
 	}
 
 	@Override
 	protected void onStart() {
 		Log.d(TAG, "onStart");
 		super.onStart();
+		doBindServices();
+	}
+
+	@Override
+	protected void onRestart() {
+		Log.d(TAG, "onRestart");
+		super.onRestart();
+	}
+
+	@Override
+	public void onResume() {
+		Log.d(TAG, "onResume");
+		super.onResume();
+		wakeLock.acquire();
+	}
+
+	@Override
+	public void onPause() {
+		Log.d(TAG, "onPause");
+		super.onPause();
+		arduinoController.usbAccessoryDetached();
+		rcServerController.usbAccessoryDetached();
+		wakeLock.release();
 	}
 
 	@Override
 	protected void onStop() {
 		Log.d(TAG, "onStop");
 		super.onStop();
-		doUnbindService();
+		doUnbindServices();
+	}
+
+	@Override
+	public void onDestroy() {
+		Log.d(TAG, "onDestroy");
+		super.onDestroy();
+	}
+
+	private void createServices() {
+		Log.d(TAG, "createServices");
+		startService(new Intent(this, UsbAccessoryService.class));
+		startService(new Intent(this, RemoteControlService.class));
+	}
+
+	private void doBindServices() {
+		Log.d(TAG, "bindServices");
+		// Bind from the service
+		boolean success = bindService(new Intent(this, UsbAccessoryService.class), usbServiceConnection, Context.BIND_AUTO_CREATE);
+		if (!success) {
+			Log.e(TAG, "Failed to bind to UsbAccessoryService");
+		}
+		success = bindService(new Intent(this, RemoteControlService.class), remoteControlServiceConnection, Context.BIND_AUTO_CREATE);
+		if (!success) {
+			Log.e(TAG, "Failed to bind to RemoteControlService");
+		}
 	}
 
 	/**
 	 * Disconnects from the local service.
 	 */
-	private void doUnbindService() {
-		Log.d(TAG, "doUnbindService");
+	private void doUnbindServices() {
+		Log.d(TAG, "doUnbindServices");
 		// Detach our existing connection
 		if (isBoundToRcManager()) {
 			unbindService(remoteControlServiceConnection);
@@ -142,25 +172,12 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 	}
 
 	@Override
-	public void onResume() {
-		Log.d(TAG, "onResume");
-		super.onResume();
-		wakeLock.acquire();
-	}
-
-	@Override
-	public void onPause() {
-		Log.d(TAG, "onPause");
-		super.onPause();
-		arduinoController.usbAccessoryDetached();
-		rcServerController.usbAccessoryDetached();
-		wakeLock.release();
-	}
-
-	@Override
-	public void onDestroy() {
-		Log.d(TAG, "onDestroy");
-		super.onDestroy();
+	public Object onRetainNonConfigurationInstance() {
+		if (usbAccessoryManager != null) {
+			return usbAccessoryManager;
+		} else {
+			return super.onRetainNonConfigurationInstance();
+		}
 	}
 
 	@Override
@@ -199,7 +216,7 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 	}
 
 	private void quit() {
-		doUnbindService();
+		doUnbindServices();
 		stopService(new Intent(this, RemoteControlService.class));
 		stopService(new Intent(this, UsbAccessoryService.class));
 		moveTaskToBack(true);
@@ -223,6 +240,7 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 
 	@Override
 	public void onConnected(IBinder binder) {
+		Log.d(TAG, "onConnected");
 		if (binder == null) {
 			Log.e(TAG, "Failed to get binder");
 			return;
@@ -231,8 +249,8 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 		// switch between the different services
 		if (binder instanceof UsbAccessoryBinder) {
 			usbAccessoryManager = ((UsbAccessoryBinder) binder).getUsbAccessoryManager();
-		}
-		if (binder instanceof RemoteControlBinder) {
+
+		} else if (binder instanceof RemoteControlBinder) {
 			remoteControlManager = ((RemoteControlBinder) binder).getRCServerManager();
 			if (usbAccessoryManager != null)
 				remoteControlManager.setUsbAccessoryManager(this.usbAccessoryManager);

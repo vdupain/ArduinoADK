@@ -16,7 +16,7 @@ public class RemoteControlManager {
 
 	private RemoteControlHandlerThread rcServer;
 	private UsbAccessoryManager usbAccessoryManager;
-	private final Handler messageHandler;
+	private Handler messageHandler;
 	private final Context context;
 
 	public RemoteControlManager(Context context, Handler messageHandler) {
@@ -73,4 +73,9 @@ public class RemoteControlManager {
 		}
 		return s.toString();
 	}
+
+	public void setUIHandler(Handler handler) {
+		messageHandler = handler;
+	}
+
 }

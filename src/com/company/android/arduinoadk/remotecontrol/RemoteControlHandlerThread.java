@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 import android.os.Handler;
@@ -44,9 +45,9 @@ public class RemoteControlHandlerThread extends HandlerThread implements Runnabl
 
 	public RemoteControlHandlerThread(UsbAccessoryManager usbAccessoryManager, Handler messageHandler, int port) {
 		this();
-		this.arduinoManager = new ArduinoManager(usbAccessoryManager, messageHandler);
 		this.messageHandler = messageHandler;
 		this.port = port;
+		this.arduinoManager = new ArduinoManager(usbAccessoryManager);
 	}
 
 	public void createServer() {
@@ -115,9 +116,9 @@ public class RemoteControlHandlerThread extends HandlerThread implements Runnabl
 				} else
 					commandUnknown();
 			}
-		} catch (SocketTimeoutException ignored) {
+		} catch (SocketTimeoutException e) {
 			// FIXME
-			// Log.d(TAG, "No Client connection");
+			Log.d(TAG, "SocketTimeoutException");
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
 			log(e.getMessage());

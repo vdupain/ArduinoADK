@@ -18,12 +18,11 @@ public class ArduinoManager implements Runnable {
 	private FileInputStream inputStream;
 	private FileOutputStream outputStream;
 
-	private final Handler handler;
+	private Handler handler;
 
-	public ArduinoManager(UsbAccessoryManager usbAccessoryManager, Handler handler) {
+	public ArduinoManager(UsbAccessoryManager usbAccessoryManager) {
 		this.outputStream = usbAccessoryManager.getOutputStream();
 		this.inputStream = usbAccessoryManager.getInputStream();
-		this.handler = handler;
 	}
 
 	public void sendSafeStickCommand() {
@@ -60,8 +59,8 @@ public class ArduinoManager implements Runnable {
 						int angleServo1 = buffer[i + 1] & 0xFF;
 						int angleServo2 = buffer[i + 2] & 0xFF;
 						Log.d(TAG, "position servos:" + angleServo1 + " - " + angleServo2);
-						Message message = Message.obtain(handler, WhatAbout.ARDUINO.ordinal(),  angleServo1 + " - " + angleServo2);
-						this.handler.sendMessage(message);
+						//Message message = Message.obtain(handler, WhatAbout.ARDUINO.ordinal(), angleServo1 + " - " + angleServo2);
+						//this.handler.sendMessage(message);
 					}
 					i += 3;
 					break;
@@ -71,8 +70,8 @@ public class ArduinoManager implements Runnable {
 						// unsigned byte on arduino and signed in Java so...
 						int degree = buffer[i + 1] & 0xFF;
 						int distance = buffer[i + 2] & 0xFF;
-						m.obj = new ArduinoMessage(degree, distance);
-						handler.sendMessage(m);
+						//m.obj = new ArduinoMessage(degree, distance);
+						//handler.sendMessage(m);
 					}
 					i += 3;
 					break;
@@ -111,4 +110,7 @@ public class ArduinoManager implements Runnable {
 		}
 	}
 
+	public void setUIHandler(Handler handler) {
+		this.handler = handler;
+	}
 }

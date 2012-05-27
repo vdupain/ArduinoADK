@@ -26,26 +26,27 @@ public class RemoteControlService extends Service {
 
 	private RemoteControlManager remoteControlManager;
 
-	private Handler messageHandler = new Handler() {
+	private ArduinoADKActivity arduinoADKActivity;
+
+	protected Handler handler = new Handler() {
+		@Override
 		public void handleMessage(Message msg) {
 			switch (WhatAbout.values()[msg.what]) {
 			case SERVER_LOG:
-				RemoteControlService.this.arduinoADKActivity.logConsole("" + msg.obj);
+				arduinoADKActivity.logConsole("" + msg.obj);
 				break;
 			case SERVER_START:
-				RemoteControlService.this.arduinoADKActivity.logConsole("RC Server started...");
-				RemoteControlService.this.arduinoADKActivity.rcServerController.displayIP();
+				arduinoADKActivity.logConsole("RC Server started...");
+				arduinoADKActivity.rcServerController.displayIP();
 				break;
 			case SERVER_STOP:
-				RemoteControlService.this.arduinoADKActivity.logConsole("RC Server stopped...");
+				arduinoADKActivity.logConsole("RC Server stopped...");
 				break;
 			default:
 				break;
 			}
 		}
 	};
-
-	private ArduinoADKActivity arduinoADKActivity;
 
 	/**
 	 * Class used for the client Binder. Because we know this service always
@@ -66,7 +67,7 @@ public class RemoteControlService extends Service {
 		// The service is being created
 		Log.d(TAG, "onCreate");
 		if (remoteControlManager == null) {
-			remoteControlManager = new RemoteControlManager(this.getApplicationContext(), messageHandler);
+			remoteControlManager = new RemoteControlManager(this.getApplicationContext(), handler);
 		}
 	}
 
@@ -104,7 +105,13 @@ public class RemoteControlService extends Service {
 	public boolean onUnbind(Intent intent) {
 		Log.d(TAG, "onUnbind");
 		return super.onUnbind(intent);
+		// return true;
 	}
+
+	/*
+	 * public void setUIHandler(Handler handler) { messageHandler = handler;
+	 * this.remoteControlManager.setUIHandler(messageHandler); }
+	 */
 
 	public void setActivity(ArduinoADKActivity arduinoADKActivity) {
 		this.arduinoADKActivity = arduinoADKActivity;
