@@ -14,7 +14,6 @@ import android.widget.Toast;
 
 import com.company.android.arduinoadk.ArduinoADKMainActivity;
 import com.company.android.arduinoadk.R;
-import com.company.android.arduinoadk.WhatAbout;
 
 /**
  * This service is only used to contain the UsbAccessoryManager running in the
@@ -39,14 +38,6 @@ public class UsbAccessoryService extends Service {
 
 	private Handler messageHandler = new Handler() {
 		public void handleMessage(Message msg) {
-			switch (WhatAbout.values()[msg.what]) {
-			case HANDSHAKE_KO:
-				break;
-			case HANDSHAKE_OK:
-				break;
-			default:
-				break;
-			}
 		}
 	};
 

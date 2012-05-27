@@ -13,7 +13,6 @@ import android.os.HandlerThread;
 import android.os.Message;
 import android.util.Log;
 
-import com.company.android.arduinoadk.ControllStick;
 import com.company.android.arduinoadk.WhatAbout;
 import com.company.android.arduinoadk.arduino.ArduinoManager;
 import com.company.android.arduinoadk.usb.UsbAccessoryManager;
@@ -36,17 +35,16 @@ public class RemoteControlHandlerThread extends HandlerThread implements Runnabl
 	private String request, response;
 
 	private ArduinoManager arduinoManager;
-	private ControllStick controllStick = new ControllStick();
 
 	private Handler messageHandler;
 
 	public RemoteControlHandlerThread() {
-		super("RemoteControlHandlerThread", android.os.Process.THREAD_PRIORITY_AUDIO);
+		super("RemoteControlHandlerThread", android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
 	}
 
-	public RemoteControlHandlerThread(UsbAccessoryManager usbAccessoryCommunication, Handler messageHandler, int port) {
+	public RemoteControlHandlerThread(UsbAccessoryManager usbAccessoryManager, Handler messageHandler, int port) {
 		this();
-		this.arduinoManager = new ArduinoManager(usbAccessoryCommunication);
+		this.arduinoManager = new ArduinoManager(usbAccessoryManager, messageHandler);
 		this.messageHandler = messageHandler;
 		this.port = port;
 	}
@@ -147,9 +145,8 @@ public class RemoteControlHandlerThread extends HandlerThread implements Runnabl
 	private void commandStick() {
 		double actualX = Double.parseDouble(request.substring(request.indexOf("x=") + 2, request.indexOf(":y=")));
 		double actualY = Double.parseDouble(request.substring(request.indexOf("y=") + 2, request.indexOf("\n")));
-		controllStick.setX(actualX).setY(actualY);
-		this.arduinoManager.sendStickCommand(controllStick);
-		//log(this.getClientAddress().getHostAddress() + " - " + controllStick.toString());
+		this.arduinoManager.sendStickCommand(actualX, actualY);
+		log(this.getClientAddress().getHostAddress() + " - x=" + actualX + " ,y=" + actualY);
 	}
 
 	private void commandHelp() {

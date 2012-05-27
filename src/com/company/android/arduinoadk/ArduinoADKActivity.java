@@ -1,7 +1,6 @@
 package com.company.android.arduinoadk;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -22,7 +21,6 @@ import android.widget.Toast;
 import com.company.android.arduinoadk.remotecontrol.RemoteControlManager;
 import com.company.android.arduinoadk.remotecontrol.RemoteControlService;
 import com.company.android.arduinoadk.remotecontrol.RemoteControlService.RemoteControlBinder;
-import com.company.android.arduinoadk.usb.HandshakeMessage;
 import com.company.android.arduinoadk.usb.UsbAccessoryManager;
 import com.company.android.arduinoadk.usb.UsbAccessoryService;
 import com.company.android.arduinoadk.usb.UsbAccessoryService.UsbAccessoryBinder;
@@ -47,9 +45,6 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 		@Override
 		public void handleMessage(Message msg) {
 			switch (WhatAbout.values()[msg.what]) {
-			case HANDSHAKE_KO:
-				handleHandshakeMessage((HandshakeMessage) msg.obj);
-				break;
 			case TELEMETRY:
 				handleTelemetryMessage((ArduinoMessage) msg.obj);
 				break;
@@ -224,10 +219,6 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 
 	private void handleTelemetryMessage(ArduinoMessage message) {
 		arduinoController.setRadarPosition(message.getDegree(), message.getDistance());
-	}
-
-	private void handleHandshakeMessage(HandshakeMessage message) {
-		new AlertDialog.Builder(this).setMessage("This USB accessory is not compatible with this Arduino Sketch.").show();
 	}
 
 	@Override
