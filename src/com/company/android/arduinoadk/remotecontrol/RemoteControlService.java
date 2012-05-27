@@ -10,6 +10,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.company.android.arduinoadk.ArduinoADKActivity;
+import com.company.android.arduinoadk.WhatAbout;
 
 /**
  * This service is only used to contain the RemoteControlServer running in the
@@ -27,7 +28,20 @@ public class RemoteControlService extends Service {
 
 	private Handler messageHandler = new Handler() {
 		public void handleMessage(Message msg) {
-			RemoteControlService.this.arduinoADKActivity.logConsole("" + msg.obj);
+			switch (WhatAbout.values()[msg.what]) {
+			case SERVER_LOG:
+				RemoteControlService.this.arduinoADKActivity.logConsole("" + msg.obj);
+				break;
+			case SERVER_START:
+				RemoteControlService.this.arduinoADKActivity.logConsole("RC Server started...");
+				RemoteControlService.this.arduinoADKActivity.rcServerController.displayIP();
+				break;
+			case SERVER_STOP:
+				RemoteControlService.this.arduinoADKActivity.logConsole("RC Server stopped...");
+				break;
+			default:
+				break;
+			}
 		}
 	};
 
@@ -52,7 +66,7 @@ public class RemoteControlService extends Service {
 		// The service is being created
 		Log.d(TAG, "onCreate");
 		if (remoteControlManager == null) {
-			remoteControlManager = new RemoteControlManager(messageHandler);
+			remoteControlManager = new RemoteControlManager(this.getApplicationContext(), messageHandler);
 		}
 	}
 

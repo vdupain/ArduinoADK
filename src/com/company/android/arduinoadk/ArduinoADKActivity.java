@@ -1,6 +1,7 @@
 package com.company.android.arduinoadk;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -21,6 +22,7 @@ import android.widget.Toast;
 import com.company.android.arduinoadk.remotecontrol.RemoteControlManager;
 import com.company.android.arduinoadk.remotecontrol.RemoteControlService;
 import com.company.android.arduinoadk.remotecontrol.RemoteControlService.RemoteControlBinder;
+import com.company.android.arduinoadk.usb.HandshakeMessage;
 import com.company.android.arduinoadk.usb.UsbAccessoryManager;
 import com.company.android.arduinoadk.usb.UsbAccessoryService;
 import com.company.android.arduinoadk.usb.UsbAccessoryService.UsbAccessoryBinder;
@@ -29,7 +31,7 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 	private static final String TAG = ArduinoADKActivity.class.getSimpleName();
 
 	private ArduinoController arduinoController;
-	private RemoteControlServerController rcServerController;
+	public RemoteControlController rcServerController;
 	private Switch switchRcServer;
 
 	/** Defines callbacks for service binding, passed to bindService() */
@@ -45,26 +47,9 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 		@Override
 		public void handleMessage(Message msg) {
 			switch (WhatAbout.values()[msg.what]) {
-			case TELEMETRY:
-				handleTelemetryMessage((ArduinoMessage) msg.obj);
+			case HANDSHAKE_KO:
+				handleHandshakeMessage((HandshakeMessage) msg.obj);
 				break;
-			case SERVER_LOG:
-				logConsole((String) msg.obj);
-				break;
-			case SERVER_START:
-				break;
-			case SERVER_STOP:
-				break;
-			default:
-				break;
-			}
-		}
-	};
-
-	protected Handler arduinoHandler = new Handler() {
-		@Override
-		public void handleMessage(Message msg) {
-			switch (WhatAbout.values()[msg.what]) {
 			case TELEMETRY:
 				handleTelemetryMessage((ArduinoMessage) msg.obj);
 				break;
@@ -128,6 +113,7 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 	 * Disconnects from the local service.
 	 */
 	private void doUnbindService() {
+		Log.d(TAG, "doUnbindService");
 		// Detach our existing connection
 		if (isBoundToRcManager()) {
 			unbindService(remoteControlServiceConnection);
@@ -232,12 +218,16 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 		arduinoController = new ArduinoController(this);
 		arduinoController.usbAccessoryAttached();
 
-		rcServerController = new RemoteControlServerController(this);
+		rcServerController = new RemoteControlController(this);
 		rcServerController.usbAccessoryAttached();
 	}
 
 	private void handleTelemetryMessage(ArduinoMessage message) {
 		arduinoController.setRadarPosition(message.getDegree(), message.getDistance());
+	}
+
+	private void handleHandshakeMessage(HandshakeMessage message) {
+		new AlertDialog.Builder(this).setMessage("This USB accessory is not compatible with this Arduino Sketch.").show();
 	}
 
 	@Override
@@ -260,6 +250,10 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 			RemoteControlService service = ((RemoteControlBinder) binder).getService();
 			service.setActivity(this);
 		}
+	}
+
+	public RemoteControlManager getRemoteControlManager() {
+		return remoteControlManager;
 	}
 
 }

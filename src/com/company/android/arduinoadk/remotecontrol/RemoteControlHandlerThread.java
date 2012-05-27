@@ -56,7 +56,8 @@ public class RemoteControlHandlerThread extends HandlerThread implements Runnabl
 		try {
 			server = new ServerSocket(getPort());
 			server.setSoTimeout(1000);
-			log("RC Server started...");
+			Message message = Message.obtain(messageHandler, WhatAbout.SERVER_START.ordinal());
+			this.messageHandler.sendMessage(message);
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
 			log(e.getMessage());
@@ -71,7 +72,8 @@ public class RemoteControlHandlerThread extends HandlerThread implements Runnabl
 		try {
 			server.close();
 			server = null;
-			log("RC Server stopped...");
+			Message message = Message.obtain(messageHandler, WhatAbout.SERVER_STOP.ordinal());
+			this.messageHandler.sendMessage(message);
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
 			log(e.getMessage());
@@ -147,7 +149,7 @@ public class RemoteControlHandlerThread extends HandlerThread implements Runnabl
 		double actualY = Double.parseDouble(request.substring(request.indexOf("y=") + 2, request.indexOf("\n")));
 		controllStick.setX(actualX).setY(actualY);
 		this.arduinoManager.sendStickCommand(controllStick);
-		log(this.getClientAddress().getHostAddress() + " - " + controllStick.toString());
+		//log(this.getClientAddress().getHostAddress() + " - " + controllStick.toString());
 	}
 
 	private void commandHelp() {
@@ -197,7 +199,6 @@ public class RemoteControlHandlerThread extends HandlerThread implements Runnabl
 	private void sendMessage(String text) {
 		Message message = Message.obtain(messageHandler, WhatAbout.SERVER_LOG.ordinal(), text);
 		this.messageHandler.sendMessage(message);
-
 	}
 
 	public int getPort() {

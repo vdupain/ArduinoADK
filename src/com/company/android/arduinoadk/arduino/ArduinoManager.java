@@ -18,8 +18,9 @@ public class ArduinoManager {
 	public void sendStickCommand(ControllStick controllStick) {
 		byte x = (byte) (controllStick.getX() * 255);
 		byte y = (byte) (controllStick.getY() * 255);
-		usbAccessoryManager.sendCommand((byte) 2, (byte) 0x1, x);
-		usbAccessoryManager.sendCommand((byte) 2, (byte) 0x2, y);
+		//usbAccessoryManager.sendCommand((byte) 2, (byte) 0x1, x);
+		//usbAccessoryManager.sendCommand((byte) 2, (byte) 0x2, y);
+		usbAccessoryManager.sendCommand((byte) 3, x, y);
 	}
 
 }

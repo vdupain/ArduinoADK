@@ -9,6 +9,7 @@
     <string name="degree_unit">°</string>
     <string name="distance_unit">cm</string>
     <string name="arduino">Arduino</string>
+    <string name="rcserver">RC Server</string>
     <string name="server">Server</string>
     <string name="ip_address">IP address</string>
     <string name="menu_settings">Settings</string>

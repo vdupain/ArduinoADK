@@ -6,12 +6,15 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.company.android.arduinoadk.ArduinoADKMainActivity;
 import com.company.android.arduinoadk.R;
+import com.company.android.arduinoadk.WhatAbout;
 
 /**
  * This service is only used to contain the UsbAccessoryManager running in the
@@ -34,6 +37,19 @@ public class UsbAccessoryService extends Service {
 
 	private UsbAccessoryManager usbAccessoryManager;
 
+	private Handler messageHandler = new Handler() {
+		public void handleMessage(Message msg) {
+			switch (WhatAbout.values()[msg.what]) {
+			case HANDSHAKE_KO:
+				break;
+			case HANDSHAKE_OK:
+				break;
+			default:
+				break;
+			}
+		}
+	};
+
 	/**
 	 * Class used for the client Binder. Because we know this service always
 	 * runs in the same process as its clients, we don't need to deal with IPC.
@@ -51,7 +67,7 @@ public class UsbAccessoryService extends Service {
 		Log.d(TAG, "onCreate");
 
 		if (usbAccessoryManager == null) {
-			usbAccessoryManager = new UsbAccessoryManager(this.getApplicationContext(), null);
+			usbAccessoryManager = new UsbAccessoryManager(this.getApplicationContext(), messageHandler);
 		}
 		usbAccessoryManager.setupAccessory(null);
 		usbAccessoryManager.reOpenAccessory();

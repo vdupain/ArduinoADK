@@ -21,7 +21,7 @@ import com.company.android.arduinoadk.ArduinoMessage;
 import com.company.android.arduinoadk.WhatAbout;
 
 public class UsbAccessoryManager implements Runnable {
-	private static final String TAG = "UsbAccessoryCommunication";
+	private static final String TAG = UsbAccessoryManager.class.getSimpleName();
 
 	private static final String ACTION_USB_PERMISSION = "com.company.android.arduinoadk.USB_PERMISSION";
 
@@ -34,6 +34,9 @@ public class UsbAccessoryManager implements Runnable {
 	private ParcelFileDescriptor fileDescriptor;
 	private FileInputStream inputStream;
 	private FileOutputStream outputStream;
+
+	private boolean handshakeAttempted = false;
+	private boolean handshakeOk = false;
 
 	private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
 		@Override
@@ -86,12 +89,8 @@ public class UsbAccessoryManager implements Runnable {
 			FileDescriptor fd = fileDescriptor.getFileDescriptor();
 			inputStream = new FileInputStream(fd);
 			outputStream = new FileOutputStream(fd);
-			
-			// FIXME 
-			//pour le moment, pas de rŽception depuis l'Arduino
-			//Thread thread = new Thread(null, this, "UsbAccessoryThread");
-			//thread.start();
-
+			Thread thread = new Thread(null, this, "UsbAccessoryThread");
+			thread.start();
 			Log.d(TAG, "USB Accessory opened");
 		} else {
 			Log.d(TAG, "USB Accessory open fail");
@@ -145,6 +144,11 @@ public class UsbAccessoryManager implements Runnable {
 		byte[] buffer = new byte[16384];
 		int i;
 
+		// TODO: Reset this if we are disconnected?
+		if (handshakeAttempted && !handshakeOk) {
+			// Ignore all subsequent communication.
+			return;
+		}
 		while (ret >= 0) { // read data
 			try {
 				ret = inputStream.read(buffer);
@@ -152,11 +156,36 @@ public class UsbAccessoryManager implements Runnable {
 				break;
 			}
 
+			if (!handshakeAttempted) {
+				handshakeAttempted = true;
+				if ((ret >= 3) && (buffer[0] == 'X') && (buffer[1] == 'X') && buffer[2] == 0x01) {
+					handshakeOk = true;
+					sendCommand((byte) 'X', (byte) 'X', (byte) 0x01);
+				} else {
+					handshakeOk = false;
+					Message m = Message.obtain(handler, WhatAbout.HANDSHAKE_KO.ordinal(), new HandshakeMessage((byte) 0, (byte) 0, (byte) 0));
+					handler.sendMessage(m);
+				}
+			}
+
+			if (!handshakeOk) {
+				return;
+			}
+
 			i = 0;
 			while (i < ret) {
 				int len = ret - i;
 				// command
 				switch (buffer[i]) {
+				case 0x4:
+					if (len >= 3) {
+						// unsigned byte on arduino and signed in Java so...
+						int angleServo1 = buffer[i + 1] & 0xFF;
+						int angleServo2 = buffer[i + 2] & 0xFF;
+						Log.d(TAG, "position servos:" + angleServo1 + " - " + angleServo2);
+					}
+					i += 3;
+					break;
 				case 0x6:
 					if (len >= 3) {
 						Message m = Message.obtain(handler, WhatAbout.TELEMETRY.ordinal());
@@ -184,7 +213,7 @@ public class UsbAccessoryManager implements Runnable {
 	 * @param target
 	 * @param value
 	 */
-	public void sendCommand(byte command, byte target, int value) {
+	public  void sendCommand(byte command, byte target, int value) {
 		byte[] buffer = new byte[3];
 		if (value > 255)
 			value = 255;
@@ -194,7 +223,9 @@ public class UsbAccessoryManager implements Runnable {
 		buffer[2] = (byte) value;
 		if (outputStream != null && buffer[1] != -1) {
 			try {
+				synchronized(outputStream) {
 				outputStream.write(buffer);
+				}
 			} catch (IOException e) {
 				Log.e(TAG, e.getMessage(), e);
 			}
