@@ -12,12 +12,14 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Switch;
 import android.widget.Toast;
 
+import com.company.android.arduinoadk.SimpleGestureFilter.SimpleGestureListener;
 import com.company.android.arduinoadk.arduino.ArduinoManager;
 import com.company.android.arduinoadk.remotecontrol.RemoteControlManager;
 import com.company.android.arduinoadk.remotecontrol.RemoteControlService;
@@ -26,8 +28,10 @@ import com.company.android.arduinoadk.usb.UsbAccessoryManager;
 import com.company.android.arduinoadk.usb.UsbAccessoryService;
 import com.company.android.arduinoadk.usb.UsbAccessoryService.UsbAccessoryBinder;
 
-public class ArduinoADKActivity extends Activity implements ServiceConnected, OnCheckedChangeListener {
+public class ArduinoADKActivity extends Activity implements ServiceConnected, OnCheckedChangeListener, SimpleGestureListener {
 	private static final String TAG = ArduinoADKActivity.class.getSimpleName();
+
+	private SimpleGestureFilter detector;
 
 	private ArduinoController arduinoController;
 	public RemoteControlController rcServerController;
@@ -65,8 +69,7 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.main);
-		findViewById(R.id.container1).setVisibility(View.VISIBLE);
-		findViewById(R.id.container2).setVisibility(View.GONE);
+		setRcServerContainerVisible();
 		switchRcServer = (Switch) findViewById(R.id.switchRCServer);
 
 		initControllers();
@@ -74,6 +77,7 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 		wakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "com.company.android.arduinoadk.wakelock");
 
+		detector = new SimpleGestureFilter(this, this);
 		createServices();
 	}
 
@@ -200,12 +204,10 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.menu_rcserver:
-			findViewById(R.id.container1).setVisibility(View.VISIBLE);
-			findViewById(R.id.container2).setVisibility(View.GONE);
+			setRcServerContainerVisible();
 			return true;
 		case R.id.menu_arduino:
-			findViewById(R.id.container1).setVisibility(View.GONE);
-			findViewById(R.id.container2).setVisibility(View.VISIBLE);
+			setArduinoContainerVisible();
 			return true;
 		case R.id.menu_quit:
 			quit();
@@ -222,6 +224,16 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 		default:
 			return super.onOptionsItemSelected(item);
 		}
+	}
+
+	private void setArduinoContainerVisible() {
+		findViewById(R.id.container1).setVisibility(View.GONE);
+		findViewById(R.id.container2).setVisibility(View.VISIBLE);
+	}
+
+	private void setRcServerContainerVisible() {
+		findViewById(R.id.container1).setVisibility(View.VISIBLE);
+		findViewById(R.id.container2).setVisibility(View.GONE);
 	}
 
 	private void quit() {
@@ -287,6 +299,39 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 
 	public RemoteControlManager getRemoteControlManager() {
 		return remoteControlManager;
+	}
+
+	@Override
+	public void onSwipe(int direction) {
+		String str = "";
+		switch (direction) {
+		case SimpleGestureFilter.SWIPE_RIGHT:
+			str = "Swipe Right";
+			setRcServerContainerVisible();
+			break;
+		case SimpleGestureFilter.SWIPE_LEFT:
+			str = "Swipe Left";
+			setArduinoContainerVisible();
+			break;
+		case SimpleGestureFilter.SWIPE_DOWN:
+			str = "Swipe Down";
+			break;
+		case SimpleGestureFilter.SWIPE_UP:
+			str = "Swipe Up";
+			break;
+		}
+		Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
+	}
+
+	@Override
+	public void onDoubleTap() {
+		Toast.makeText(this, "Double Tap", Toast.LENGTH_SHORT).show();
+	}
+
+	@Override
+	public boolean dispatchTouchEvent(MotionEvent ev) {
+		this.detector.onTouchEvent(ev);
+		return super.dispatchTouchEvent(ev);
 	}
 
 }

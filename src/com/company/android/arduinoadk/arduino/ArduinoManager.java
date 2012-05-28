@@ -103,9 +103,9 @@ public class ArduinoManager implements Runnable {
 		buffer[2] = (byte) value;
 		if (outputStream != null && buffer[1] != -1) {
 			try {
-				synchronized (outputStream) {
+				//synchronized (outputStream) {
 					outputStream.write(buffer);
-				}
+				//}
 			} catch (IOException e) {
 				Log.e(TAG, e.getMessage(), e);
 			}

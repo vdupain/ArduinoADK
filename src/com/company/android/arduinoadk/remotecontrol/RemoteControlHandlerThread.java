@@ -71,6 +71,7 @@ public class RemoteControlHandlerThread extends HandlerThread implements Runnabl
 		if (server == null)
 			return;
 		try {
+			isRunning.set(false);
 			server.close();
 			server = null;
 			Message message = Message.obtain(handler, WhatAbout.SERVER_STOP.ordinal());
