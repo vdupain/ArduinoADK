@@ -2,8 +2,13 @@
 <preference-headers xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <header
+        android:fragment="com.company.android.arduinoadk.SettingsActivity$GlobalSettingsPreferenceFragment"
+        android:summary="Application settings."
+        android:title="Application" >
+    </header>
+    <header
         android:fragment="com.company.android.arduinoadk.SettingsActivity$RCServerSettingsPreferenceFragment"
-        android:summary="Remote control server settings."
+        android:summary="Remote Control server settings."
         android:title="Remote Control Server" >
     </header>
     <header

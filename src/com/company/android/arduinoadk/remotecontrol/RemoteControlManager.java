@@ -9,6 +9,7 @@ import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.util.Log;
 
+import com.company.android.arduinoadk.ArduinoADK;
 import com.company.android.arduinoadk.usb.UsbAccessoryManager;
 
 public class RemoteControlManager {
@@ -25,7 +26,8 @@ public class RemoteControlManager {
 	}
 
 	public void start() {
-		rcServer = new RemoteControlHandlerThread(usbAccessoryManager, handler, 12345);
+		int port = ((ArduinoADK) this.context.getApplicationContext()).getSettings().getRCserverTCPPort();
+		rcServer = new RemoteControlHandlerThread(usbAccessoryManager, handler, port);
 		rcServer.createServer();
 		rcServer.start();
 	}

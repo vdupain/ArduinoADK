@@ -28,6 +28,7 @@ public class UsbAccessoryManager {
 	private ParcelFileDescriptor fileDescriptor;
 	private FileInputStream inputStream;
 	private FileOutputStream outputStream;
+	private boolean opened;
 
 	private final Context context;
 
@@ -93,7 +94,7 @@ public class UsbAccessoryManager {
 		UsbAccessory accessory = (accessories == null ? null : accessories[0]);
 		if (accessory != null) {
 			if (usbManager.hasPermission(accessory)) {
-				openUsbAccessory(accessory);
+				this.opened = openUsbAccessory(accessory);
 			} else {
 				synchronized (usbReceiver) {
 					if (!permissionRequestPending) {
@@ -119,6 +120,7 @@ public class UsbAccessoryManager {
 		} finally {
 			fileDescriptor = null;
 			usbAccessory = null;
+			this.opened = false;
 		}
 	}
 
@@ -133,4 +135,9 @@ public class UsbAccessoryManager {
 	public FileOutputStream getOutputStream() {
 		return outputStream;
 	}
+
+	public boolean isOpened() {
+		return opened;
+	}
+
 }

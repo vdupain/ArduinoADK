@@ -22,6 +22,18 @@ public class SettingsActivity extends PreferenceActivity {
 	}
 
 	/**
+	 * This fragment shows the general preferences.
+	 */
+	public static class GlobalSettingsPreferenceFragment extends PreferenceFragment {
+		@Override
+		public void onCreate(Bundle savedInstanceState) {
+			super.onCreate(savedInstanceState);
+			// Load the preferences from an XML resource
+			addPreferencesFromResource(R.xml.global_preferences);
+		}
+	}
+
+	/**
 	 * This fragment shows the RCServer preferences.
 	 */
 	public static class RCServerSettingsPreferenceFragment extends PreferenceFragment {

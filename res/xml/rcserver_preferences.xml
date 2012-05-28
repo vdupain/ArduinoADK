@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
 
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="auto_start_rcserver"
+        android:summary="Start up automaticaly when application starts"
+        android:title="Auto Start" />
+
     <EditTextPreference
         android:defaultValue="12345"
+        android:dialogMessage="Port number, in range 1024-65536"
         android:key="tcp_port"
         android:summary="TCP Port number to bind locally"
         android:title="TCP Port" />

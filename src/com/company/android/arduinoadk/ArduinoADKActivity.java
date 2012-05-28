@@ -261,14 +261,19 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 		// switch between the different services
 		if (binder instanceof UsbAccessoryBinder) {
 			usbAccessoryManager = ((UsbAccessoryBinder) binder).getUsbAccessoryManager();
-			ArduinoManager arduinoHandlerThread = new ArduinoManager(usbAccessoryManager, handler);
-			Thread thread = new Thread(null, arduinoHandlerThread, "arduinoHandlerThread");
-			thread.start();
+			if (usbAccessoryManager.isOpened()) {
+				ArduinoManager arduinoHandlerThread = new ArduinoManager(usbAccessoryManager, handler);
+				Thread thread = new Thread(null, arduinoHandlerThread, "arduinoHandlerThread");
+				thread.start();
+			}
 		} else if (binder instanceof RemoteControlBinder) {
 			RemoteControlBinder b = (RemoteControlBinder) binder;
 			remoteControlManager = b.getRCServerManager();
 			if (usbAccessoryManager != null)
 				remoteControlManager.setUsbAccessoryManager(this.usbAccessoryManager);
+			if (((ArduinoADK) getApplicationContext()).getSettings().isRCServerAutoStart()) {
+				remoteControlManager.start();
+			}
 			switchRcServer.setChecked(remoteControlManager.isStarted());
 			switchRcServer.setOnCheckedChangeListener(ArduinoADKActivity.this);
 			b.getService().setActivity(this);
