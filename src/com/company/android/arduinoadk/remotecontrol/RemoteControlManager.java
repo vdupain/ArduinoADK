@@ -26,7 +26,7 @@ public class RemoteControlManager {
 	}
 
 	public void start() {
-		int port = ((ArduinoADK) this.context.getApplicationContext()).getSettings().getRCserverTCPPort();
+		int port = ((ArduinoADK) this.context.getApplicationContext()).getSettings().getRCServerTCPPort();
 		rcServer = new RemoteControlHandlerThread(usbAccessoryManager, handler, port);
 		rcServer.createServer();
 		rcServer.start();

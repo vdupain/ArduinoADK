@@ -2,6 +2,7 @@ package com.company.android.arduinoadk.settings;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.preference.PreferenceManager;
 
 public class Settings {
@@ -16,7 +17,13 @@ public class Settings {
 		return this.preferences.getBoolean("auto_start_rcserver", false);
 	}
 
-	public int getRCserverTCPPort() {
+	public void setRCServerAutoStart(boolean flag) {
+		Editor editor = preferences.edit();
+		editor.putBoolean("auto_start_rcserver", flag);
+		editor.commit();
+	}
+
+	public int getRCServerTCPPort() {
 		return Integer.valueOf(this.preferences.getString("tcp_port", "12345"));
 	}
 }
