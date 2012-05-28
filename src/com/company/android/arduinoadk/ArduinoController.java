@@ -28,7 +28,7 @@ public class ArduinoController extends AbstractController {
 
 	public void logConsole(String message) {
 		String t = console.getText().toString();
-		if (t.split("\n").length >= 8) {
+		if (t.split("\n").length >= 6) {
 			console.setText(t.substring(t.indexOf("\n") + 1, t.length()));
 		}
 		console.append(Html.fromHtml(message + "<br />"));

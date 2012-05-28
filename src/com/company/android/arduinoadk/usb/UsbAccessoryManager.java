@@ -16,8 +16,6 @@ import android.os.ParcelFileDescriptor;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.company.android.arduinoadk.arduino.ArduinoManager;
-
 public class UsbAccessoryManager {
 	private static final String TAG = UsbAccessoryManager.class.getSimpleName();
 
@@ -30,6 +28,8 @@ public class UsbAccessoryManager {
 	private ParcelFileDescriptor fileDescriptor;
 	private FileInputStream inputStream;
 	private FileOutputStream outputStream;
+
+	private final Context context;
 
 	private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
 		@Override
@@ -54,26 +54,20 @@ public class UsbAccessoryManager {
 		}
 	};
 
-	private final Context context;
-
 	public UsbAccessoryManager(Context context) {
 		this.context = context;
 	}
 
-	public void setupAccessory(UsbAccessory usbAccessoryRetainInstance) {
-		Log.d(TAG, "setupAccessory: " + usbAccessoryRetainInstance);
+	public void setupUsbAccessory() {
+		Log.d(TAG, "setupAccessory");
 		usbManager = (UsbManager) this.context.getSystemService(Context.USB_SERVICE);
 		permissionIntent = PendingIntent.getBroadcast(this.context, 0, new Intent(ACTION_USB_PERMISSION), 0);
 		IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
 		filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
 		this.context.registerReceiver(this.usbReceiver, filter);
-		if (usbAccessoryRetainInstance != null) {
-			this.usbAccessory = usbAccessoryRetainInstance;
-			openUsbAccessory(this.usbAccessory);
-		}
 	}
 
-	private void openUsbAccessory(UsbAccessory accessory) {
+	private boolean openUsbAccessory(UsbAccessory accessory) {
 		Log.d(TAG, "openUsbAccessory: " + accessory);
 		fileDescriptor = usbManager.openAccessory(accessory);
 		if (fileDescriptor != null) {
@@ -81,18 +75,17 @@ public class UsbAccessoryManager {
 			FileDescriptor fd = fileDescriptor.getFileDescriptor();
 			inputStream = new FileInputStream(fd);
 			outputStream = new FileOutputStream(fd);
-			// FIXME ArduinoManager
-			Thread thread = new Thread(null, new ArduinoManager(this), "UsbAccessoryThread");
-			thread.start();
 			Log.d(TAG, "USB Accessory opened");
 			Toast.makeText(this.context, "openUsbAccessory", Toast.LENGTH_SHORT).show();
+			return true;
 		} else {
 			Log.d(TAG, "USB Accessory open fail");
 		}
+		return false;
 	}
 
-	public void reOpenAccessory() {
-		Log.d(TAG, "reOpenAccessory");
+	public void openUsbAccessory() {
+		Log.d(TAG, "openUsbAccessory");
 		if (inputStream != null && outputStream != null) {
 			return;
 		}
@@ -140,5 +133,4 @@ public class UsbAccessoryManager {
 	public FileOutputStream getOutputStream() {
 		return outputStream;
 	}
-
 }

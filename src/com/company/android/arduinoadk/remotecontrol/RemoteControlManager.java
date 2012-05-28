@@ -16,16 +16,16 @@ public class RemoteControlManager {
 
 	private RemoteControlHandlerThread rcServer;
 	private UsbAccessoryManager usbAccessoryManager;
-	private Handler messageHandler;
+	private Handler handler;
 	private final Context context;
 
 	public RemoteControlManager(Context context, Handler messageHandler) {
 		this.context = context;
-		this.messageHandler = messageHandler;
+		this.handler = messageHandler;
 	}
 
 	public void start() {
-		rcServer = new RemoteControlHandlerThread(usbAccessoryManager, messageHandler, 12345);
+		rcServer = new RemoteControlHandlerThread(usbAccessoryManager, handler, 12345);
 		rcServer.createServer();
 		rcServer.start();
 	}
@@ -72,10 +72,6 @@ public class RemoteControlManager {
 			s.append("Wifi should be enabled !");
 		}
 		return s.toString();
-	}
-
-	public void setUIHandler(Handler handler) {
-		messageHandler = handler;
 	}
 
 }

@@ -19,9 +19,10 @@ public class ArduinoManager implements Runnable {
 
 	private Handler handler;
 
-	public ArduinoManager(UsbAccessoryManager usbAccessoryManager) {
+	public ArduinoManager(UsbAccessoryManager usbAccessoryManager, Handler handler) {
 		this.outputStream = usbAccessoryManager.getOutputStream();
 		this.inputStream = usbAccessoryManager.getInputStream();
+		this.handler = handler;
 	}
 
 	public void sendSafeStickCommand() {
@@ -32,8 +33,8 @@ public class ArduinoManager implements Runnable {
 		byte x = (byte) (valueX);
 		byte y = (byte) (valueY);
 		this.sendCommand((byte) 3, x, y);
-		//this.sendCommand((byte) 2, (byte) 0x01, x);
-		//this.sendCommand((byte) 2, (byte) 0x02, y);
+		// this.sendCommand((byte) 2, (byte) 0x01, x);
+		// this.sendCommand((byte) 2, (byte) 0x02, y);
 	}
 
 	@Override
@@ -60,10 +61,8 @@ public class ArduinoManager implements Runnable {
 						int angleServo1 = buffer[i + 1] & 0xFF;
 						int angleServo2 = buffer[i + 2] & 0xFF;
 						Log.d(TAG, "position servos:" + angleServo1 + " - " + angleServo2);
-						// Message message = Message.obtain(handler,
-						// WhatAbout.ARDUINO.ordinal(), angleServo1 + " - " +
-						// angleServo2);
-						// this.handler.sendMessage(message);
+						Message message = Message.obtain(handler, WhatAbout.ARDUINO.ordinal(), angleServo1 + " - " + angleServo2);
+						this.handler.sendMessage(message);
 					}
 					i += 3;
 					break;
@@ -113,7 +112,4 @@ public class ArduinoManager implements Runnable {
 		}
 	}
 
-	public void setUIHandler(Handler handler) {
-		this.handler = handler;
-	}
 }

@@ -14,4 +14,10 @@ public interface ServiceConnected {
 	 *            The binder from the service.
 	 */
 	public void onConnected(IBinder binder);
+
+	/**
+	 * Called when the connection with the service disconnects unexpectedly.
+	 * 
+	 */
+	public void onDisconnected();
 }

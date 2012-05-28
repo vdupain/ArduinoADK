@@ -76,6 +76,7 @@ public class RemoteControlService extends Service {
 		// The service is no longer used and is being destroyed
 		Log.d(TAG, "onDestroy");
 		remoteControlManager.stop();
+		remoteControlManager = null;
 	}
 
 	@Override
@@ -107,11 +108,6 @@ public class RemoteControlService extends Service {
 		return super.onUnbind(intent);
 		// return true;
 	}
-
-	/*
-	 * public void setUIHandler(Handler handler) { messageHandler = handler;
-	 * this.remoteControlManager.setUIHandler(messageHandler); }
-	 */
 
 	public void setActivity(ArduinoADKActivity arduinoADKActivity) {
 		this.arduinoADKActivity = arduinoADKActivity;

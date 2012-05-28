@@ -18,6 +18,7 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Switch;
 import android.widget.Toast;
 
+import com.company.android.arduinoadk.arduino.ArduinoManager;
 import com.company.android.arduinoadk.remotecontrol.RemoteControlManager;
 import com.company.android.arduinoadk.remotecontrol.RemoteControlService;
 import com.company.android.arduinoadk.remotecontrol.RemoteControlService.RemoteControlBinder;
@@ -45,6 +46,9 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 		@Override
 		public void handleMessage(Message msg) {
 			switch (WhatAbout.values()[msg.what]) {
+			case ARDUINO:
+				logArduinoConsole("" + msg.obj);
+				break;
 			case TELEMETRY:
 				handleTelemetryMessage((ArduinoMessage) msg.obj);
 				break;
@@ -150,6 +154,11 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 		}
 	}
 
+	private void stopServices() {
+		stopService(new Intent(this, RemoteControlService.class));
+		stopService(new Intent(this, UsbAccessoryService.class));
+	}
+
 	private boolean isBoundToRcManager() {
 		return this.remoteControlManager != null;
 	}
@@ -217,13 +226,16 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 
 	private void quit() {
 		doUnbindServices();
-		stopService(new Intent(this, RemoteControlService.class));
-		stopService(new Intent(this, UsbAccessoryService.class));
+		stopServices();
 		moveTaskToBack(true);
 	}
 
 	public void logConsole(String message) {
 		rcServerController.logConsole(message);
+	}
+
+	public void logArduinoConsole(String message) {
+		arduinoController.logConsole(message);
 	}
 
 	private void initControllers() {
@@ -249,16 +261,23 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 		// switch between the different services
 		if (binder instanceof UsbAccessoryBinder) {
 			usbAccessoryManager = ((UsbAccessoryBinder) binder).getUsbAccessoryManager();
-
+			ArduinoManager arduinoHandlerThread = new ArduinoManager(usbAccessoryManager, handler);
+			Thread thread = new Thread(null, arduinoHandlerThread, "arduinoHandlerThread");
+			thread.start();
 		} else if (binder instanceof RemoteControlBinder) {
-			remoteControlManager = ((RemoteControlBinder) binder).getRCServerManager();
+			RemoteControlBinder b = (RemoteControlBinder) binder;
+			remoteControlManager = b.getRCServerManager();
 			if (usbAccessoryManager != null)
 				remoteControlManager.setUsbAccessoryManager(this.usbAccessoryManager);
 			switchRcServer.setChecked(remoteControlManager.isStarted());
 			switchRcServer.setOnCheckedChangeListener(ArduinoADKActivity.this);
-			RemoteControlService service = ((RemoteControlBinder) binder).getService();
-			service.setActivity(this);
+			b.getService().setActivity(this);
 		}
+	}
+
+	@Override
+	public void onDisconnected() {
+		Log.d(TAG, "onDisconnected");
 	}
 
 	public RemoteControlManager getRemoteControlManager() {

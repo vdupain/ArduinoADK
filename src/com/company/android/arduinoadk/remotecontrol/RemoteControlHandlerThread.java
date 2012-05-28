@@ -6,8 +6,8 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -37,17 +37,19 @@ public class RemoteControlHandlerThread extends HandlerThread implements Runnabl
 
 	private ArduinoManager arduinoManager;
 
-	private Handler messageHandler;
+	private Handler handler;
+	private final AtomicBoolean isRunning = new AtomicBoolean(false);
+	private final AtomicBoolean isCancel = new AtomicBoolean(false);
 
 	public RemoteControlHandlerThread() {
 		super("RemoteControlHandlerThread", android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
 	}
 
-	public RemoteControlHandlerThread(UsbAccessoryManager usbAccessoryManager, Handler messageHandler, int port) {
+	public RemoteControlHandlerThread(UsbAccessoryManager usbAccessoryManager, Handler handler, int port) {
 		this();
-		this.messageHandler = messageHandler;
+		this.handler = handler;
 		this.port = port;
-		this.arduinoManager = new ArduinoManager(usbAccessoryManager);
+		this.arduinoManager = new ArduinoManager(usbAccessoryManager, handler);
 	}
 
 	public void createServer() {
@@ -55,8 +57,8 @@ public class RemoteControlHandlerThread extends HandlerThread implements Runnabl
 		try {
 			server = new ServerSocket(getPort());
 			server.setSoTimeout(1000);
-			Message message = Message.obtain(messageHandler, WhatAbout.SERVER_START.ordinal());
-			this.messageHandler.sendMessage(message);
+			Message message = Message.obtain(handler, WhatAbout.SERVER_START.ordinal());
+			this.handler.sendMessage(message);
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
 			log(e.getMessage());
@@ -71,8 +73,8 @@ public class RemoteControlHandlerThread extends HandlerThread implements Runnabl
 		try {
 			server.close();
 			server = null;
-			Message message = Message.obtain(messageHandler, WhatAbout.SERVER_STOP.ordinal());
-			this.messageHandler.sendMessage(message);
+			Message message = Message.obtain(handler, WhatAbout.SERVER_STOP.ordinal());
+			this.handler.sendMessage(message);
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
 			log(e.getMessage());
@@ -173,6 +175,7 @@ public class RemoteControlHandlerThread extends HandlerThread implements Runnabl
 	@Override
 	public void run() {
 		Log.d(this.TAG, "run");
+		isRunning.set(true);
 		while (!this.isCancelled() && this.handleClient())
 			;
 	}
@@ -195,8 +198,8 @@ public class RemoteControlHandlerThread extends HandlerThread implements Runnabl
 	}
 
 	private void sendMessage(String text) {
-		Message message = Message.obtain(messageHandler, WhatAbout.SERVER_LOG.ordinal(), text);
-		this.messageHandler.sendMessage(message);
+		Message message = Message.obtain(handler, WhatAbout.SERVER_LOG.ordinal(), text);
+		this.handler.sendMessage(message);
 	}
 
 	public int getPort() {

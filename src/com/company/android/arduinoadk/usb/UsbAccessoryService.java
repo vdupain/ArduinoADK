@@ -6,9 +6,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -32,20 +30,18 @@ public class UsbAccessoryService extends Service {
 	private final IBinder binder = new UsbAccessoryBinder();
 
 	/** For showing and hiding our notification. */
-	NotificationManager notificationManager;
+	private NotificationManager notificationManager;
 
 	private UsbAccessoryManager usbAccessoryManager;
-
-	private Handler messageHandler = new Handler() {
-		public void handleMessage(Message msg) {
-		}
-	};
 
 	/**
 	 * Class used for the client Binder. Because we know this service always
 	 * runs in the same process as its clients, we don't need to deal with IPC.
 	 */
 	public class UsbAccessoryBinder extends Binder {
+		public UsbAccessoryService getService() {
+			return UsbAccessoryService.this;
+		}
 
 		public UsbAccessoryManager getUsbAccessoryManager() {
 			return UsbAccessoryService.this.usbAccessoryManager;
@@ -60,8 +56,10 @@ public class UsbAccessoryService extends Service {
 		if (usbAccessoryManager == null) {
 			usbAccessoryManager = new UsbAccessoryManager(this.getApplicationContext());
 		}
-		usbAccessoryManager.setupAccessory(null);
-		usbAccessoryManager.reOpenAccessory();
+		usbAccessoryManager.setupUsbAccessory();
+		usbAccessoryManager.openUsbAccessory();
+		// FIXME
+		// usbAccessoryManager.start();
 
 		notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 		// Display a notification about us starting.
@@ -108,7 +106,7 @@ public class UsbAccessoryService extends Service {
 	public boolean onUnbind(Intent intent) {
 		Log.d(TAG, "onUnbind");
 		return super.onUnbind(intent);
-		//return true;
+		// return true;
 	}
 
 	/**
@@ -131,5 +129,4 @@ public class UsbAccessoryService extends Service {
 	private void clearNotification() {
 		notificationManager.cancel(NOTIFICATION);
 	}
-
 }

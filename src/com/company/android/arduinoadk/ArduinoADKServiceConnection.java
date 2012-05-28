@@ -26,6 +26,7 @@ public class ArduinoADKServiceConnection implements ServiceConnection {
 	@Override
 	public void onServiceDisconnected(ComponentName name) {
 		binder = null;
+		serviceConnected.onDisconnected();
 	}
 
 	/**
