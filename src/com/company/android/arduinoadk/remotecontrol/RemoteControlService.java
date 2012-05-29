@@ -19,12 +19,11 @@ import com.company.android.arduinoadk.WhatAbout;
  */
 public class RemoteControlService extends Service {
 
-	private static final String TAG = RemoteControlService.class.getSimpleName();
+	private static final String TAG = RemoteControlService.class
+			.getSimpleName();
 
 	// Binder given to clients
 	private final IBinder binder = new RemoteControlBinder();
-    private Thread mThread;
-
 
 	private RemoteControlManager remoteControlManager;
 
@@ -69,7 +68,8 @@ public class RemoteControlService extends Service {
 		// The service is being created
 		Log.d(TAG, "onCreate");
 		if (remoteControlManager == null) {
-			remoteControlManager = new RemoteControlManager(this.getApplicationContext(), handler);
+			remoteControlManager = new RemoteControlManager(
+					this.getApplicationContext(), handler);
 		}
 	}
 
@@ -107,8 +107,7 @@ public class RemoteControlService extends Service {
 	@Override
 	public boolean onUnbind(Intent intent) {
 		Log.d(TAG, "onUnbind");
-		return super.onUnbind(intent);
-		// return true;
+		return true;
 	}
 
 	public void setActivity(ArduinoADKActivity arduinoADKActivity) {

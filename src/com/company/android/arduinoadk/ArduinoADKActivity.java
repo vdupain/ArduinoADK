@@ -131,7 +131,7 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 
 	private void doBindServices() {
 		Log.d(TAG, "bindServices");
-		// Bind from the service
+		// Bind from the service		
 		boolean success = bindService(new Intent(this, UsbAccessoryService.class), usbServiceConnection, Context.BIND_AUTO_CREATE);
 		if (!success) {
 			Log.e(TAG, "Failed to bind to UsbAccessoryService");
@@ -148,7 +148,7 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 	private void doUnbindServices() {
 		Log.d(TAG, "doUnbindServices");
 		// Detach our existing connection
-		if (isBoundToRcManager()) {
+		if (isBoundToRemoteControlManager()) {
 			unbindService(remoteControlServiceConnection);
 			this.remoteControlManager = null;
 		}
@@ -163,7 +163,7 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 		stopService(new Intent(this, UsbAccessoryService.class));
 	}
 
-	private boolean isBoundToRcManager() {
+	private boolean isBoundToRemoteControlManager() {
 		return this.remoteControlManager != null;
 	}
 
@@ -330,7 +330,7 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent ev) {
-		this.detector.onTouchEvent(ev);
+		//this.detector.onTouchEvent(ev);
 		return super.dispatchTouchEvent(ev);
 	}
 

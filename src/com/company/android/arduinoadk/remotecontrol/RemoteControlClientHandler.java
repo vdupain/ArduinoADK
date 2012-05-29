@@ -62,6 +62,7 @@ public class RemoteControlClientHandler implements Runnable {
 			}
 
 		} catch (IOException e) {
+			// FIXME
 			throw new RuntimeException(e);
 		} finally {
 			closeResources();

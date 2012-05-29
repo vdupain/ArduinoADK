@@ -12,49 +12,54 @@ import android.util.Log;
 import com.company.android.arduinoadk.ArduinoADK;
 import com.company.android.arduinoadk.usb.UsbAccessoryManager;
 
-public class RemoteControlManager {
-	private static final String TAG = RemoteControlManager.class.getSimpleName();
+public class RemoteControlManager implements Runnable {
+	private static final String TAG = RemoteControlManager.class
+			.getSimpleName();
 
-	//private RemoteControlHandlerThread rcServer;
 	private RemoteControlServer remoteControlServer;
 	private UsbAccessoryManager usbAccessoryManager;
 	private Handler handler;
 	private final Context context;
 	private int port;
+	private Thread workerThread;
 
 	public RemoteControlManager(Context context, Handler messageHandler) {
 		this.context = context;
 		this.handler = messageHandler;
-		this.port = ((ArduinoADK) this.context.getApplicationContext()).getSettings().getRCServerTCPPort();
-		this.remoteControlServer = new RemoteControlServer(usbAccessoryManager, handler, port);
+		this.remoteControlServer = new RemoteControlServer(usbAccessoryManager,
+				handler);
 	}
 
 	public void start() {
-		//int port = ((ArduinoADK) this.context.getApplicationContext()).getSettings().getRCServerTCPPort();
-		//rcServer = new RemoteControlHandlerThread(usbAccessoryManager, handler, port);
-		//rcServer.createServer();
-		//rcServer.start();
-		new Thread(remoteControlServer).start();
+		// Stop the previous server by interrupting the thread.
+		if (workerThread != null) {
+			workerThread.interrupt();
+		}
+		// Start a new server by creating a new thread.
+		workerThread = new Thread(this,
+				RemoteControlManager.class.getSimpleName() + "Thead");
+		workerThread.start();
 	}
 
 	public boolean isStarted() {
-		/*
-		if (rcServer != null)
-			return !rcServer.isCancelled();
-		else
-			return false;
-			*/
+		if (workerThread != null)
+			return workerThread.isAlive();
 		return false;
 	}
 
 	public void stop() {
-		/*
-		if (rcServer != null) {
-			rcServer.stopServer();
-			rcServer = null;
-		}
-		*/
 		remoteControlServer.stopServer();
+		if (workerThread != null) {
+			workerThread.interrupt();
+			workerThread = null;
+		}
+	}
+
+	@Override
+	public void run() {
+		this.port = ((ArduinoADK) this.context.getApplicationContext())
+				.getSettings().getRCServerTCPPort();
+		remoteControlServer.service(port);
 	}
 
 	public void setUsbAccessoryManager(UsbAccessoryManager usbAccessoryManager) {
@@ -64,18 +69,21 @@ public class RemoteControlManager {
 	public String getIpInfo() {
 		StringBuffer s = new StringBuffer();
 		// Determines if user is connected to a wireless network & displays ip
-		WifiManager wifiManager = (WifiManager) this.context.getSystemService(Context.WIFI_SERVICE);
+		WifiManager wifiManager = (WifiManager) this.context
+				.getSystemService(Context.WIFI_SERVICE);
 		WifiInfo wifiInfo = wifiManager.getConnectionInfo();
 		if (wifiInfo.getNetworkId() > -1) {
 			int ipAddress = wifiInfo.getIpAddress();
-			byte[] byteaddr = new byte[] { (byte) (ipAddress & 0xff), (byte) (ipAddress >> 8 & 0xff), (byte) (ipAddress >> 16 & 0xff),
+			byte[] byteaddr = new byte[] { (byte) (ipAddress & 0xff),
+					(byte) (ipAddress >> 8 & 0xff),
+					(byte) (ipAddress >> 16 & 0xff),
 					(byte) (ipAddress >> 24 & 0xff) };
 			InetAddress inetAddress;
 			try {
 				inetAddress = InetAddress.getByAddress(byteaddr);
 				s.append("tcp://");
 				s.append(inetAddress.getHostAddress());
-				//s.append(":" + rcServer.getPort() + "/");
+				// s.append(":" + rcServer.getPort() + "/");
 			} catch (UnknownHostException e) {
 				Log.e(TAG, e.getMessage(), e);
 				s.delete(0, s.length());
