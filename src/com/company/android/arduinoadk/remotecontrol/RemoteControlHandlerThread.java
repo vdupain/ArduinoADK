@@ -55,7 +55,7 @@ public class RemoteControlHandlerThread extends HandlerThread implements Runnabl
 	public void createServer() {
 		Log.d(TAG, "createServer");
 		try {
-			server = new ServerSocket(getPort());
+			server = new ServerSocket(this.port);
 			server.setSoTimeout(1000);
 			Message message = Message.obtain(handler, WhatAbout.SERVER_START.ordinal());
 			this.handler.sendMessage(message);

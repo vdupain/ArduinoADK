@@ -20,8 +20,10 @@ public class ArduinoManager implements Runnable {
 	private Handler handler;
 
 	public ArduinoManager(UsbAccessoryManager usbAccessoryManager, Handler handler) {
-		this.outputStream = usbAccessoryManager.getOutputStream();
-		this.inputStream = usbAccessoryManager.getInputStream();
+		if (usbAccessoryManager != null) {
+			this.outputStream = usbAccessoryManager.getOutputStream();
+			this.inputStream = usbAccessoryManager.getInputStream();
+		}
 		this.handler = handler;
 	}
 
@@ -103,9 +105,9 @@ public class ArduinoManager implements Runnable {
 		buffer[2] = (byte) value;
 		if (outputStream != null && buffer[1] != -1) {
 			try {
-				//synchronized (outputStream) {
-					outputStream.write(buffer);
-				//}
+				// synchronized (outputStream) {
+				outputStream.write(buffer);
+				// }
 			} catch (IOException e) {
 				Log.e(TAG, e.getMessage(), e);
 			}

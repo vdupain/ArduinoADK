@@ -15,35 +15,46 @@ import com.company.android.arduinoadk.usb.UsbAccessoryManager;
 public class RemoteControlManager {
 	private static final String TAG = RemoteControlManager.class.getSimpleName();
 
-	private RemoteControlHandlerThread rcServer;
+	//private RemoteControlHandlerThread rcServer;
+	private RemoteControlServer remoteControlServer;
 	private UsbAccessoryManager usbAccessoryManager;
 	private Handler handler;
 	private final Context context;
+	private int port;
 
 	public RemoteControlManager(Context context, Handler messageHandler) {
 		this.context = context;
 		this.handler = messageHandler;
+		this.port = ((ArduinoADK) this.context.getApplicationContext()).getSettings().getRCServerTCPPort();
+		this.remoteControlServer = new RemoteControlServer(usbAccessoryManager, handler, port);
 	}
 
 	public void start() {
-		int port = ((ArduinoADK) this.context.getApplicationContext()).getSettings().getRCServerTCPPort();
-		rcServer = new RemoteControlHandlerThread(usbAccessoryManager, handler, port);
-		rcServer.createServer();
-		rcServer.start();
+		//int port = ((ArduinoADK) this.context.getApplicationContext()).getSettings().getRCServerTCPPort();
+		//rcServer = new RemoteControlHandlerThread(usbAccessoryManager, handler, port);
+		//rcServer.createServer();
+		//rcServer.start();
+		new Thread(remoteControlServer).start();
 	}
 
 	public boolean isStarted() {
+		/*
 		if (rcServer != null)
 			return !rcServer.isCancelled();
 		else
 			return false;
+			*/
+		return false;
 	}
 
 	public void stop() {
+		/*
 		if (rcServer != null) {
 			rcServer.stopServer();
 			rcServer = null;
 		}
+		*/
+		remoteControlServer.stopServer();
 	}
 
 	public void setUsbAccessoryManager(UsbAccessoryManager usbAccessoryManager) {
@@ -64,7 +75,7 @@ public class RemoteControlManager {
 				inetAddress = InetAddress.getByAddress(byteaddr);
 				s.append("tcp://");
 				s.append(inetAddress.getHostAddress());
-				s.append(":" + rcServer.getPort() + "/");
+				//s.append(":" + rcServer.getPort() + "/");
 			} catch (UnknownHostException e) {
 				Log.e(TAG, e.getMessage(), e);
 				s.delete(0, s.length());

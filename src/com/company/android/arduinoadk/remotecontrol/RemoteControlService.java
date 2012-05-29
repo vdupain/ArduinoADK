@@ -23,6 +23,8 @@ public class RemoteControlService extends Service {
 
 	// Binder given to clients
 	private final IBinder binder = new RemoteControlBinder();
+    private Thread mThread;
+
 
 	private RemoteControlManager remoteControlManager;
 
