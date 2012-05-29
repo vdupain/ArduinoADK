@@ -31,14 +31,11 @@ public class RemoteControlManager implements Runnable {
 	}
 
 	public void start() {
-		// Stop the previous server by interrupting the thread.
-		if (workerThread != null) {
-			workerThread.interrupt();
+		if (workerThread == null) {
+			workerThread = new Thread(this,
+					RemoteControlManager.class.getSimpleName() + "Thead");
+			workerThread.start();
 		}
-		// Start a new server by creating a new thread.
-		workerThread = new Thread(this,
-				RemoteControlManager.class.getSimpleName() + "Thead");
-		workerThread.start();
 	}
 
 	public boolean isStarted() {

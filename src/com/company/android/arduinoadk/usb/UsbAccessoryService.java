@@ -54,7 +54,8 @@ public class UsbAccessoryService extends Service {
 		Log.d(TAG, "onCreate");
 
 		if (usbAccessoryManager == null) {
-			usbAccessoryManager = new UsbAccessoryManager(this.getApplicationContext());
+			usbAccessoryManager = new UsbAccessoryManager(
+					this.getApplicationContext());
 		}
 		usbAccessoryManager.setupUsbAccessory();
 		usbAccessoryManager.openUsbAccessory();
@@ -73,7 +74,8 @@ public class UsbAccessoryService extends Service {
 		// Cancel the persistent notification.
 		clearNotification();
 		// Tell the user we stopped.
-		Toast.makeText(this, R.string.usb_service_stopped, Toast.LENGTH_SHORT).show();
+		Toast.makeText(this, R.string.usb_service_stopped, Toast.LENGTH_SHORT)
+				.show();
 
 		usbAccessoryManager.closeUsbAccessory();
 		usbAccessoryManager.unregisterReceiver();
@@ -98,7 +100,6 @@ public class UsbAccessoryService extends Service {
 
 	@Override
 	public void onRebind(Intent intent) {
-		super.onRebind(intent);
 		Log.d(TAG, "onRebind");
 	}
 
@@ -113,12 +114,16 @@ public class UsbAccessoryService extends Service {
 	 */
 	private void showNotification() {
 		CharSequence text = getText(R.string.usb_service_started);
-		Notification notification = new Notification(R.drawable.ic_launcher, text, System.currentTimeMillis());
 		// The PendingIntent to launch our activity if the user selects this
 		// notification
-		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, ArduinoADKMainActivity.class), 0);
+		PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+				new Intent(this, ArduinoADKMainActivity.class), 0);
 		// Set the info for the views that show in the notification panel.
-		notification.setLatestEventInfo(this, getText(R.string.usb_service_label), text, contentIntent);
+		Notification notification = new Notification.Builder(this)
+				.setTicker(text).setWhen(System.currentTimeMillis())
+				.setSmallIcon(R.drawable.ic_launcher).setContentText(text)
+				.setContentTitle(getText(R.string.usb_service_label))
+				.setContentIntent(contentIntent).getNotification();
 		// Send the notification.
 		// We use a string id because it is a unique number. We use it later to
 		// cancel.

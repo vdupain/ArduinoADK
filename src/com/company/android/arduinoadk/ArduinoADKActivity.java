@@ -330,7 +330,7 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent ev) {
-		//this.detector.onTouchEvent(ev);
+		this.detector.onTouchEvent(ev);
 		return super.dispatchTouchEvent(ev);
 	}
 

@@ -73,18 +73,18 @@ public class RemoteControlClientHandler implements Runnable {
 		if (inputStream != null) {
 			try {
 				inputStream.close();
+				inputStream = null;
 			} catch (IOException e) {
 				Log.e(TAG, e.getMessage(), e);
 			}
-			inputStream = null;
 		}
 		if (outputStream != null) {
 			try {
 				outputStream.close();
+				inputStream = null;
 			} catch (IOException e) {
 				Log.e(TAG, e.getMessage(), e);
 			}
-			inputStream = null;
 		}
 		if (socket != null) {
 			try {
@@ -99,13 +99,19 @@ public class RemoteControlClientHandler implements Runnable {
 	}
 
 	private void commandStick() {
-		double actualX = Double.parseDouble(request.substring(request.indexOf("x=") + 2, request.indexOf(":y=")));
-		double actualY = Double.parseDouble(request.substring(request.indexOf("y=") + 2, request.indexOf("\n")));
-		// this.arduinoManager.sendStickCommand(actualX, actualY);
-		log(this.getClientAddress().getHostAddress() + " - x=" + actualX + " ,y=" + actualY);
+		try {
+			double actualX = Double.parseDouble(request.substring(request.indexOf("x=") + 2, request.indexOf(":y=")));
+			double actualY = Double.parseDouble(request.substring(request.indexOf("y=") + 2, request.indexOf("\n")));
+			this.arduinoManager.sendStickCommand(actualX, actualY);
+			log(this.getClientAddress().getHostAddress() + " - x=" + actualX + " ,y=" + actualY);
+		} catch (NumberFormatException e) {
+			Log.e(TAG, e.getMessage(), e);
+		}
 	}
 
 	private void commandHelp() {
+		writeContent("Available commands:\r\n");
+		writeContent("STICK:x=valueX:y=valueY\r\n");
 	}
 
 	private void commandQuit() {
@@ -113,7 +119,8 @@ public class RemoteControlClientHandler implements Runnable {
 	}
 
 	private void commandUnknown() {
-		writeContent("Command unknown: " + request + "\r\n");
+		writeContent("Unknown Command : " + request + "\r\n");
+		commandHelp();
 	}
 
 	private void writeContent(String requestContent) {

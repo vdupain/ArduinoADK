@@ -100,7 +100,6 @@ public class RemoteControlService extends Service {
 
 	@Override
 	public void onRebind(Intent intent) {
-		super.onRebind(intent);
 		Log.d(TAG, "onRebind");
 	}
 
