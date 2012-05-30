@@ -27,7 +27,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/distance_unit" />
-
     </LinearLayout>
 
     <LinearLayout
@@ -53,24 +52,23 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/degree_unit" />
-
     </LinearLayout>
 
-        <TextView
-            android:id="@+id/arduinoConsole"
-            android:layout_width="match_parent"
-            android:layout_height="99dp"
-            android:layout_alignParentLeft="true"
-            android:layout_below="@+id/linearLayout1"
-            android:layout_marginLeft="10dip"
-            android:layout_marginRight="10dp"
-            android:gravity="top"
-            android:shadowColor="#000000"
-            android:shadowDx="1"
-            android:shadowDy="1"
-            android:shadowRadius="1"
-            android:textColor="@color/orange" />
-    
+    <TextView
+        android:id="@+id/arduinoConsole"
+        android:layout_width="match_parent"
+        android:layout_height="99dp"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/linearLayout1"
+        android:layout_marginLeft="10dip"
+        android:layout_marginRight="10dp"
+        android:gravity="top"
+        android:shadowColor="#000000"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="1"
+        android:textColor="@color/orange" />
+
     <include
         android:id="@+id/RadarContainer_ref"
         android:layout_width="match_parent"

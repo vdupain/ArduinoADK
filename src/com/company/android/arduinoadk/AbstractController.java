@@ -5,9 +5,9 @@ import android.view.View;
 
 public abstract class AbstractController {
 
-	protected ArduinoADKActivity activity;
+	protected BaseActivity activity;
 
-	public AbstractController(ArduinoADKActivity activity) {
+	public AbstractController(BaseActivity activity) {
 		this.activity = activity;
 	}
 

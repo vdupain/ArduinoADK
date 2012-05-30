@@ -7,7 +7,7 @@ public class ArduinoController extends AbstractController {
 	private RadarView radarView;
 	private TextView console;
 
-	public ArduinoController(ArduinoADKActivity activity) {
+	public ArduinoController(ArduinoActivity activity) {
 		super(activity);
 		console = (TextView) findViewById(R.id.arduinoConsole);
 		radarView = (RadarView) findViewById(R.id.radarView);

@@ -9,7 +9,7 @@ public class RemoteControlController extends AbstractController {
 	private TextView console;
 	private TextView ip;
 
-	public RemoteControlController(ArduinoADKActivity activity) {
+	public RemoteControlController(HomeActivity activity) {
 		super(activity);
 		console = (TextView) findViewById(R.id.console);
 		ip = (TextView) findViewById(R.id.ip);
@@ -24,7 +24,7 @@ public class RemoteControlController extends AbstractController {
 	}
 
 	public void displayIP() {
-		ip.setText(this.activity.getRemoteControlManager().getIpInfo());
+		ip.setText(((HomeActivity) this.activity).getRemoteControlManager().getIpInfo());
 	}
 
 	public void logConsole(String message) {

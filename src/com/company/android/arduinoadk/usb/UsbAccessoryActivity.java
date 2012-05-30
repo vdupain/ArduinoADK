@@ -22,10 +22,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.company.android.arduinoadk.ArduinoADKMainActivity;
+import com.company.android.arduinoadk.MainActivity;
 
 /* This Activity does nothing but receive USB_DEVICE_ATTACHED events from the
- * USB service and springboards to the main Gallery activity
+ * USB service and springboards to the main activity
  */
 public final class UsbAccessoryActivity extends Activity {
 
@@ -35,12 +35,12 @@ public final class UsbAccessoryActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		Intent intent = ArduinoADKMainActivity.createIntent(this);
+		Intent intent = MainActivity.createIntent(this);
 		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		try {
 			startActivity(intent);
 		} catch (ActivityNotFoundException e) {
-			Log.e(TAG, "Unable to start ArduinoADK activity", e);
+			Log.e(TAG, "Unable to start " + MainActivity.class.getSimpleName()+ " activity", e);
 		}
 		finish();
 	}

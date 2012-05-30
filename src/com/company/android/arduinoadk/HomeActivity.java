@@ -1,19 +1,12 @@
 package com.company.android.arduinoadk;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 import android.os.PowerManager;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Switch;
@@ -28,12 +21,11 @@ import com.company.android.arduinoadk.usb.UsbAccessoryManager;
 import com.company.android.arduinoadk.usb.UsbAccessoryService;
 import com.company.android.arduinoadk.usb.UsbAccessoryService.UsbAccessoryBinder;
 
-public class ArduinoADKActivity extends Activity implements ServiceConnected, OnCheckedChangeListener, SimpleGestureListener {
-	private static final String TAG = ArduinoADKActivity.class.getSimpleName();
+public class HomeActivity extends BaseActivity implements ServiceConnected, OnCheckedChangeListener, SimpleGestureListener {
+	private static final String TAG = HomeActivity.class.getSimpleName();
 
 	private SimpleGestureFilter detector;
 
-	private ArduinoController arduinoController;
 	public RemoteControlController rcServerController;
 	private Switch switchRcServer;
 
@@ -46,36 +38,21 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 
 	private PowerManager.WakeLock wakeLock;
 
-	protected Handler handler = new Handler() {
-		@Override
-		public void handleMessage(Message msg) {
-			switch (WhatAbout.values()[msg.what]) {
-			case ARDUINO:
-				logArduinoConsole("" + msg.obj);
-				break;
-			case TELEMETRY:
-				handleTelemetryMessage((ArduinoMessage) msg.obj);
-				break;
-			default:
-				break;
-			}
-		}
-	};
-
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		Log.d(TAG, "onCreate");
 		super.onCreate(savedInstanceState);
 
-		setContentView(R.layout.main);
-		setRcServerContainerVisible();
-		switchRcServer = (Switch) findViewById(R.id.switchRCServer);
+		setContentView(R.layout.home_main);
+		RCServerFragment fragment = (RCServerFragment) getFragmentManager().findFragmentById(R.id.rcServerFragment);
+		switchRcServer = (Switch) fragment.getView().findViewById(R.id.switchRCServer);
 
 		initControllers();
 
 		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-		wakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "com.company.android.arduinoadk.wakelock");
+		// Create a wake lock
+		wakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, getClass().getName());
 
 		detector = new SimpleGestureFilter(this, this);
 		createServices();
@@ -98,6 +75,8 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 	public void onResume() {
 		Log.d(TAG, "onResume");
 		super.onResume();
+		// when the activity is resumed, we acquire a wake-lock so that the
+		// screen stays on
 		wakeLock.acquire();
 	}
 
@@ -105,8 +84,9 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 	public void onPause() {
 		Log.d(TAG, "onPause");
 		super.onPause();
-		arduinoController.usbAccessoryDetached();
 		rcServerController.usbAccessoryDetached();
+
+		// and release our wake-lock
 		wakeLock.release();
 	}
 
@@ -131,7 +111,7 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 
 	private void doBindServices() {
 		Log.d(TAG, "bindServices");
-		// Bind from the service		
+		// Bind from the service
 		boolean success = bindService(new Intent(this, UsbAccessoryService.class), usbServiceConnection, Context.BIND_AUTO_CREATE);
 		if (!success) {
 			Log.e(TAG, "Failed to bind to UsbAccessoryService");
@@ -193,50 +173,7 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 		}
 	}
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.menu, menu);
-		return super.onCreateOptionsMenu(menu);
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case R.id.menu_rcserver:
-			setRcServerContainerVisible();
-			return true;
-		case R.id.menu_arduino:
-			setArduinoContainerVisible();
-			return true;
-		case R.id.menu_quit:
-			quit();
-			return true;
-		case R.id.menu_test:
-			TestUtils.test(handler);
-			return true;
-		case R.id.menu_settings:
-			startActivity(new Intent(this, SettingsActivity.class));
-			return true;
-		case R.id.menu_abouthelp:
-			Toast.makeText(this, "Not yet implemented", Toast.LENGTH_SHORT).show();
-			return true;
-		default:
-			return super.onOptionsItemSelected(item);
-		}
-	}
-
-	private void setArduinoContainerVisible() {
-		findViewById(R.id.container1).setVisibility(View.GONE);
-		findViewById(R.id.container2).setVisibility(View.VISIBLE);
-	}
-
-	private void setRcServerContainerVisible() {
-		findViewById(R.id.container1).setVisibility(View.VISIBLE);
-		findViewById(R.id.container2).setVisibility(View.GONE);
-	}
-
-	private void quit() {
+	void quit() {
 		doUnbindServices();
 		stopServices();
 		moveTaskToBack(true);
@@ -246,20 +183,9 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 		rcServerController.logConsole(message);
 	}
 
-	public void logArduinoConsole(String message) {
-		arduinoController.logConsole(message);
-	}
-
 	private void initControllers() {
-		arduinoController = new ArduinoController(this);
-		arduinoController.usbAccessoryAttached();
-
 		rcServerController = new RemoteControlController(this);
 		rcServerController.usbAccessoryAttached();
-	}
-
-	private void handleTelemetryMessage(ArduinoMessage message) {
-		arduinoController.setRadarPosition(message.getDegree(), message.getDistance());
 	}
 
 	@Override
@@ -274,7 +200,7 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 		if (binder instanceof UsbAccessoryBinder) {
 			usbAccessoryManager = ((UsbAccessoryBinder) binder).getUsbAccessoryManager();
 			if (usbAccessoryManager.isOpened()) {
-				ArduinoManager arduinoHandlerThread = new ArduinoManager(usbAccessoryManager, handler);
+				ArduinoManager arduinoHandlerThread = new ArduinoManager(usbAccessoryManager, null);
 				Thread thread = new Thread(null, arduinoHandlerThread, "arduinoHandlerThread");
 				thread.start();
 			}
@@ -287,7 +213,7 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 				remoteControlManager.start();
 			}
 			switchRcServer.setChecked(remoteControlManager.isStarted());
-			switchRcServer.setOnCheckedChangeListener(ArduinoADKActivity.this);
+			switchRcServer.setOnCheckedChangeListener(HomeActivity.this);
 			b.getService().setActivity(this);
 		}
 	}
@@ -307,11 +233,11 @@ public class ArduinoADKActivity extends Activity implements ServiceConnected, On
 		switch (direction) {
 		case SimpleGestureFilter.SWIPE_RIGHT:
 			str = "Swipe Right";
-			setRcServerContainerVisible();
+			// setRCServerContainerVisible();
 			break;
 		case SimpleGestureFilter.SWIPE_LEFT:
 			str = "Swipe Left";
-			setArduinoContainerVisible();
+			// setArduinoContainerVisible();
 			break;
 		case SimpleGestureFilter.SWIPE_DOWN:
 			str = "Swipe Down";

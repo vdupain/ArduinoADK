@@ -6,6 +6,10 @@
         android:showAsAction="ifRoom|withText"
         android:title="@string/menu_rcserver"/>
     <item
+        android:id="@+id/menu_rcclient"
+        android:showAsAction="ifRoom|withText"
+        android:title="@string/menu_rcclient"/>
+    <item
         android:id="@+id/menu_arduino"
         android:showAsAction="ifRoom|withText"
         android:title="@string/menu_arduino"/>

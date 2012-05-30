@@ -39,6 +39,18 @@ public class ArduinoManager implements Runnable {
 		// this.sendCommand((byte) 2, (byte) 0x02, y);
 	}
 
+	public void sendTestSequence() {
+		this.sendStickCommand(90, 90);
+		this.sendStickCommand(0, 90);
+		this.sendStickCommand(90, 90);
+		this.sendStickCommand(180, 90);
+		this.sendStickCommand(90, 90);
+		this.sendStickCommand(90, 0);
+		this.sendStickCommand(90, 90);
+		this.sendStickCommand(90, 180);
+		this.sendStickCommand(90, 90);
+	}
+
 	@Override
 	public void run() {
 		int ret = 0;

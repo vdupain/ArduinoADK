@@ -10,7 +10,7 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.company.android.arduinoadk.ArduinoADKMainActivity;
+import com.company.android.arduinoadk.MainActivity;
 import com.company.android.arduinoadk.R;
 
 /**
@@ -24,7 +24,7 @@ public class UsbAccessoryService extends Service {
 
 	// Unique Identification Number for the Notification.
 	// We use it on Notification start, and to cancel it.
-	private int NOTIFICATION = R.string.usb_service_started;
+	private int NOTIFICATION = R.string.service_started;
 
 	// Binder given to clients
 	private final IBinder binder = new UsbAccessoryBinder();
@@ -74,7 +74,7 @@ public class UsbAccessoryService extends Service {
 		// Cancel the persistent notification.
 		clearNotification();
 		// Tell the user we stopped.
-		Toast.makeText(this, R.string.usb_service_stopped, Toast.LENGTH_SHORT)
+		Toast.makeText(this, R.string.service_stopped, Toast.LENGTH_SHORT)
 				.show();
 
 		usbAccessoryManager.closeUsbAccessory();
@@ -113,16 +113,16 @@ public class UsbAccessoryService extends Service {
 	 * Show a notification while this service is running.
 	 */
 	private void showNotification() {
-		CharSequence text = getText(R.string.usb_service_started);
+		CharSequence text = getText(R.string.service_started);
 		// The PendingIntent to launch our activity if the user selects this
 		// notification
 		PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-				new Intent(this, ArduinoADKMainActivity.class), 0);
+				new Intent(this, MainActivity.class), 0);
 		// Set the info for the views that show in the notification panel.
 		Notification notification = new Notification.Builder(this)
 				.setTicker(text).setWhen(System.currentTimeMillis())
 				.setSmallIcon(R.drawable.ic_launcher).setContentText(text)
-				.setContentTitle(getText(R.string.usb_service_label))
+				.setContentTitle(getText(R.string.service_label))
 				.setContentIntent(contentIntent).getNotification();
 		// Send the notification.
 		// We use a string id because it is a unique number. We use it later to

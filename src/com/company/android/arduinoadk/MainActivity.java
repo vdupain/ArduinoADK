@@ -6,11 +6,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
-public class ArduinoADKMainActivity extends Activity {
-	static final String TAG = "ArduinoADKMainActivity";
+public class MainActivity extends Activity {
+
+	private static final String TAG = MainActivity.class.getSimpleName();
 
 	public static Intent createIntent(Activity activity) {
-		return new Intent(activity, ArduinoADKActivity.class);
+		return new Intent(activity, HomeActivity.class);
 	}
 
 	@Override

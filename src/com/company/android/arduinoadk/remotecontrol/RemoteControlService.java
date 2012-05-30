@@ -9,7 +9,7 @@ import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.company.android.arduinoadk.ArduinoADKActivity;
+import com.company.android.arduinoadk.HomeActivity;
 import com.company.android.arduinoadk.WhatAbout;
 
 /**
@@ -27,7 +27,7 @@ public class RemoteControlService extends Service {
 
 	private RemoteControlManager remoteControlManager;
 
-	private ArduinoADKActivity arduinoADKActivity;
+	private HomeActivity arduinoADKActivity;
 
 	protected Handler handler = new Handler() {
 		@Override
@@ -109,7 +109,7 @@ public class RemoteControlService extends Service {
 		return true;
 	}
 
-	public void setActivity(ArduinoADKActivity arduinoADKActivity) {
+	public void setActivity(HomeActivity arduinoADKActivity) {
 		this.arduinoADKActivity = arduinoADKActivity;
 	}
 

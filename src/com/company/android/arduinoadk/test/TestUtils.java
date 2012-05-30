@@ -1,6 +1,9 @@
-package com.company.android.arduinoadk;
+package com.company.android.arduinoadk.test;
 
 import java.util.Random;
+
+import com.company.android.arduinoadk.ArduinoMessage;
+import com.company.android.arduinoadk.WhatAbout;
 
 import android.os.Handler;
 import android.os.Message;
@@ -8,6 +11,7 @@ import android.os.Message;
 public class TestUtils {
 
 	public static void test(final Handler handler) {
+		// FIXME
 		Thread thread = new Thread(new Runnable() {
 
 			@Override

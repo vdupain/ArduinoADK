@@ -54,6 +54,8 @@ public class RemoteControlClientHandler implements Runnable {
 					commandStick();
 				else if (request.startsWith("HELP"))
 					commandHelp();
+				else if (request.startsWith("TEST"))
+					commandTest();
 				else if (request.startsWith("QUIT")) {
 					commandQuit();
 					break;
@@ -112,6 +114,10 @@ public class RemoteControlClientHandler implements Runnable {
 	private void commandHelp() {
 		writeContent("Available commands:\r\n");
 		writeContent("STICK:x=valueX:y=valueY\r\n");
+		this.arduinoManager.sendTestSequence();
+	}
+
+	private void commandTest() {
 	}
 
 	private void commandQuit() {
