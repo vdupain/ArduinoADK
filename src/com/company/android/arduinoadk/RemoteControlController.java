@@ -3,14 +3,14 @@ package com.company.android.arduinoadk;
 import android.text.Html;
 import android.widget.TextView;
 
-public class RemoteControlController extends AbstractController<HomeActivity> {
+public class RemoteControlController extends AbstractController<RemoteControlServerActivity> {
 	private static final String TAG = RemoteControlController.class
 			.getSimpleName();
 
 	private TextView console;
 	private TextView ip;
 
-	public RemoteControlController(HomeActivity activity) {
+	public RemoteControlController(RemoteControlServerActivity activity) {
 		super(activity);
 		console = (TextView) findViewById(R.id.console);
 		ip = (TextView) findViewById(R.id.ip);

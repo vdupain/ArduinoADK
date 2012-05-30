@@ -33,12 +33,12 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".HomeActivity"
+            android:name=".RemoteControlServerActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name=".RCClientActivity"
+            android:name=".RemoteControlClientActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait" >
         </activity>

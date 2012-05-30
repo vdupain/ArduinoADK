@@ -11,7 +11,7 @@ public class MainActivity extends Activity {
 	private static final String TAG = MainActivity.class.getSimpleName();
 
 	public static Intent createIntent(Activity activity) {
-		return new Intent(activity, HomeActivity.class);
+		return new Intent(activity, RemoteControlServerActivity.class);
 	}
 
 	@Override
