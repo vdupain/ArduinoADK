@@ -3,8 +3,9 @@ package com.company.android.arduinoadk;
 import android.text.Html;
 import android.widget.TextView;
 
-public class RemoteControlController extends AbstractController {
-	private static final String TAG = RemoteControlController.class.getSimpleName();
+public class RemoteControlController extends AbstractController<HomeActivity> {
+	private static final String TAG = RemoteControlController.class
+			.getSimpleName();
 
 	private TextView console;
 	private TextView ip;
@@ -24,7 +25,7 @@ public class RemoteControlController extends AbstractController {
 	}
 
 	public void displayIP() {
-		ip.setText(((HomeActivity) this.activity).getRemoteControlManager().getIpInfo());
+		ip.setText(this.activity.getRemoteControlManager().getIpInfo());
 	}
 
 	public void logConsole(String message) {

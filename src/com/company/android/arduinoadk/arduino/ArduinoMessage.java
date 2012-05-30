@@ -1,4 +1,4 @@
-package com.company.android.arduinoadk;
+package com.company.android.arduinoadk.arduino;
 
 public class ArduinoMessage {
 

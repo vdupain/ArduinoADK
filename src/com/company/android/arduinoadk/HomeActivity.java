@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.PowerManager;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.CompoundButton;
@@ -36,12 +35,11 @@ public class HomeActivity extends BaseActivity implements ServiceConnected, OnCh
 	private RemoteControlManager remoteControlManager;
 	private UsbAccessoryManager usbAccessoryManager;
 
-	private PowerManager.WakeLock wakeLock;
 
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		Log.d(TAG, "onCreate");
+		//Log.d(TAG, "onCreate");
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.home_main);
@@ -50,56 +48,46 @@ public class HomeActivity extends BaseActivity implements ServiceConnected, OnCh
 
 		initControllers();
 
-		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-		// Create a wake lock
-		wakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, getClass().getName());
-
 		detector = new SimpleGestureFilter(this, this);
 		createServices();
 	}
 
 	@Override
 	protected void onStart() {
-		Log.d(TAG, "onStart");
+		//Log.d(TAG, "onStart");
 		super.onStart();
 		doBindServices();
 	}
 
 	@Override
 	protected void onRestart() {
-		Log.d(TAG, "onRestart");
+		//Log.d(TAG, "onRestart");
 		super.onRestart();
 	}
 
 	@Override
 	public void onResume() {
-		Log.d(TAG, "onResume");
+		//Log.d(TAG, "onResume");
 		super.onResume();
-		// when the activity is resumed, we acquire a wake-lock so that the
-		// screen stays on
-		wakeLock.acquire();
 	}
 
 	@Override
 	public void onPause() {
-		Log.d(TAG, "onPause");
+		//Log.d(TAG, "onPause");
 		super.onPause();
 		rcServerController.usbAccessoryDetached();
-
-		// and release our wake-lock
-		wakeLock.release();
 	}
 
 	@Override
 	protected void onStop() {
-		Log.d(TAG, "onStop");
+		//Log.d(TAG, "onStop");
 		super.onStop();
 		doUnbindServices();
 	}
 
 	@Override
 	public void onDestroy() {
-		Log.d(TAG, "onDestroy");
+		//Log.d(TAG, "onDestroy");
 		super.onDestroy();
 	}
 
@@ -173,7 +161,8 @@ public class HomeActivity extends BaseActivity implements ServiceConnected, OnCh
 		}
 	}
 
-	void quit() {
+	@Override
+	void onQuit() {
 		doUnbindServices();
 		stopServices();
 		moveTaskToBack(true);
@@ -183,7 +172,8 @@ public class HomeActivity extends BaseActivity implements ServiceConnected, OnCh
 		rcServerController.logConsole(message);
 	}
 
-	private void initControllers() {
+	@Override
+	void initControllers() {
 		rcServerController = new RemoteControlController(this);
 		rcServerController.usbAccessoryAttached();
 	}

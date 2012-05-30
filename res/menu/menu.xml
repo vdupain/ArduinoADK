@@ -14,10 +14,6 @@
         android:showAsAction="ifRoom|withText"
         android:title="@string/menu_arduino"/>
     <item
-        android:id="@+id/menu_test"
-        android:showAsAction="ifRoom|withText"
-        android:title="@string/menu_test"/>
-    <item
         android:id="@+id/menu_settings"
         android:showAsAction="ifRoom|withText"
         android:title="@string/menu_settings"/>

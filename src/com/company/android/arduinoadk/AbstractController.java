@@ -3,11 +3,11 @@ package com.company.android.arduinoadk;
 import android.content.res.Resources;
 import android.view.View;
 
-public abstract class AbstractController {
+public abstract class AbstractController<T extends BaseActivity> {
 
-	protected BaseActivity activity;
+	protected T activity;
 
-	public AbstractController(BaseActivity activity) {
+	public AbstractController(T activity) {
 		this.activity = activity;
 	}
 

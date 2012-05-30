@@ -9,6 +9,7 @@ import android.os.Message;
 import android.util.Log;
 
 import com.company.android.arduinoadk.arduino.ArduinoManager;
+import com.company.android.arduinoadk.arduino.ArduinoMessage;
 import com.company.android.arduinoadk.usb.UsbAccessoryManager;
 import com.company.android.arduinoadk.usb.UsbAccessoryService;
 import com.company.android.arduinoadk.usb.UsbAccessoryService.UsbAccessoryBinder;
@@ -19,7 +20,8 @@ public class ArduinoActivity extends BaseActivity implements ServiceConnected {
 	private ArduinoController arduinoController;
 
 	/** Defines callbacks for service binding, passed to bindService() */
-	private ArduinoADKServiceConnection usbServiceConnection = new ArduinoADKServiceConnection(this);
+	private ArduinoADKServiceConnection usbServiceConnection = new ArduinoADKServiceConnection(
+			this);
 
 	private UsbAccessoryManager usbAccessoryManager;
 
@@ -96,7 +98,9 @@ public class ArduinoActivity extends BaseActivity implements ServiceConnected {
 	private void doBindServices() {
 		Log.d(TAG, "bindServices");
 		// Bind from the service
-		boolean success = bindService(new Intent(this, UsbAccessoryService.class), usbServiceConnection, Context.BIND_AUTO_CREATE);
+		boolean success = bindService(new Intent(this,
+				UsbAccessoryService.class), usbServiceConnection,
+				Context.BIND_AUTO_CREATE);
 		if (!success) {
 			Log.e(TAG, "Failed to bind to UsbAccessoryService");
 		}
@@ -135,13 +139,15 @@ public class ArduinoActivity extends BaseActivity implements ServiceConnected {
 		arduinoController.logConsole(message);
 	}
 
-	private void initControllers() {
+	@Override
+	void initControllers() {
 		arduinoController = new ArduinoController(this);
 		arduinoController.usbAccessoryAttached();
 	}
 
 	private void handleTelemetryMessage(ArduinoMessage message) {
-		arduinoController.setRadarPosition(message.getDegree(), message.getDistance());
+		arduinoController.setRadarPosition(message.getDegree(),
+				message.getDistance());
 	}
 
 	@Override
@@ -154,10 +160,13 @@ public class ArduinoActivity extends BaseActivity implements ServiceConnected {
 
 		// switch between the different services
 		if (binder instanceof UsbAccessoryBinder) {
-			usbAccessoryManager = ((UsbAccessoryBinder) binder).getUsbAccessoryManager();
+			usbAccessoryManager = ((UsbAccessoryBinder) binder)
+					.getUsbAccessoryManager();
 			if (usbAccessoryManager.isOpened()) {
-				ArduinoManager arduinoHandlerThread = new ArduinoManager(usbAccessoryManager, handler);
-				Thread thread = new Thread(null, arduinoHandlerThread, "arduinoHandlerThread");
+				ArduinoManager arduinoHandlerThread = new ArduinoManager(
+						usbAccessoryManager, handler);
+				Thread thread = new Thread(null, arduinoHandlerThread,
+						"arduinoHandlerThread");
 				thread.start();
 			}
 		}
@@ -166,5 +175,9 @@ public class ArduinoActivity extends BaseActivity implements ServiceConnected {
 	@Override
 	public void onDisconnected() {
 		Log.d(TAG, "onDisconnected");
+	}
+
+	@Override
+	void onQuit() {
 	}
 }

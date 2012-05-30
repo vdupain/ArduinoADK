@@ -2,8 +2,8 @@ package com.company.android.arduinoadk.test;
 
 import java.util.Random;
 
-import com.company.android.arduinoadk.ArduinoMessage;
 import com.company.android.arduinoadk.WhatAbout;
+import com.company.android.arduinoadk.arduino.ArduinoMessage;
 
 import android.os.Handler;
 import android.os.Message;

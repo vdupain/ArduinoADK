@@ -3,7 +3,7 @@ package com.company.android.arduinoadk;
 import android.text.Html;
 import android.widget.TextView;
 
-public class ArduinoController extends AbstractController {
+public class ArduinoController extends AbstractController<ArduinoActivity> {
 	private RadarView radarView;
 	private TextView console;
 
