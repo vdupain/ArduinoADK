@@ -19,8 +19,8 @@
         <EditTextPreference
             android:defaultValue="localhost"
             android:key="rc_server"
-            android:summary="Remote Control server"
-            android:title="RC Server" />
+            android:summary="Hostname or IP address of the RC Server"
+            android:title="Hostname" />
     </PreferenceCategory>
 
 </PreferenceScreen>

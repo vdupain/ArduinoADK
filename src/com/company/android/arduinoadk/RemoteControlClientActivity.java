@@ -11,8 +11,7 @@ import android.widget.Switch;
 
 import com.company.android.arduinoadk.remotecontrol.PositionMessage;
 
-public class RemoteControlClientActivity extends BaseActivity implements
-		OnCheckedChangeListener {
+public class RemoteControlClientActivity extends BaseActivity implements OnCheckedChangeListener {
 	private Switch switchRCClient;
 	private RemoteControlClientController controller;
 
@@ -20,10 +19,8 @@ public class RemoteControlClientActivity extends BaseActivity implements
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.rcclient_main);
-		RemoteControlClientFragment fragment = (RemoteControlClientFragment) getFragmentManager()
-				.findFragmentById(R.id.remoteControlClientFragment);
-		switchRCClient = (Switch) fragment.getView().findViewById(
-				R.id.switchRCClient);
+		RemoteControlClientFragment fragment = (RemoteControlClientFragment) getFragmentManager().findFragmentById(R.id.remoteControlClientFragment);
+		switchRCClient = (Switch) fragment.getView().findViewById(R.id.switchRCClient);
 		initController();
 	}
 
@@ -46,13 +43,12 @@ public class RemoteControlClientActivity extends BaseActivity implements
 	@Override
 	public void onResume() {
 		super.onResume();
-		switchRCClient.setChecked(getArduinoADKApplication()
-				.getRemoteControlManager().isClientStarted());
+		if (getArduinoADKApplication().getRemoteControlManager() != null) {
+			switchRCClient.setChecked(getArduinoADKApplication().getRemoteControlManager().isClientStarted());
+		}
 		switchRCClient.setOnCheckedChangeListener(this);
-		this.getArduinoADKApplication().getRemoteControlManager()
-				.setHandler(handler);
-		this.getArduinoADKApplication().getRemoteControlManager()
-				.getRemoteControlClient().setHandler(handler);
+		this.getArduinoADKApplication().getRemoteControlManager().setHandler(handler);
+		this.getArduinoADKApplication().getRemoteControlManager().getRemoteControlClient().setHandler(handler);
 	}
 
 	private void handlePositionMessage(PositionMessage positionMessage) {
@@ -62,8 +58,7 @@ public class RemoteControlClientActivity extends BaseActivity implements
 	private void handleServerConnectionFailure(Exception ex) {
 		switchRCClient.setChecked(false);
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("Server connection failure")
-				.setMessage(ex.getMessage()).setCancelable(false)
+		builder.setTitle("Server connection failure").setMessage(ex.getMessage()).setCancelable(false)
 				.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int id) {
 					}
@@ -95,11 +90,9 @@ public class RemoteControlClientActivity extends BaseActivity implements
 		switch (buttonView.getId()) {
 		case R.id.switchRCClient:
 			if (buttonView.isChecked()) {
-				getArduinoADKApplication().getRemoteControlManager()
-						.startClient();
+				getArduinoADKApplication().getRemoteControlManager().startClient();
 			} else {
-				getArduinoADKApplication().getRemoteControlManager()
-						.stopClient();
+				getArduinoADKApplication().getRemoteControlManager().stopClient();
 			}
 			break;
 		}

@@ -21,8 +21,7 @@ import com.company.android.arduinoadk.clientserver.TCPServer;
 import com.company.android.arduinoadk.usb.UsbAccessoryManager;
 
 public class RemoteControlManager implements SensorEventListener {
-	private static final String TAG = RemoteControlManager.class
-			.getSimpleName();
+	private static final String TAG = RemoteControlManager.class.getSimpleName();
 
 	private TCPServer remoteControlServer;
 	private TCPClient remoteControlClient;
@@ -40,9 +39,7 @@ public class RemoteControlManager implements SensorEventListener {
 	class RCServerRunnable implements Runnable {
 		@Override
 		public void run() {
-			serverPort = ((ArduinoADK) RemoteControlManager.this.context
-					.getApplicationContext()).getSettings()
-					.getRCServerTCPPort();
+			serverPort = ((ArduinoADK) RemoteControlManager.this.context.getApplicationContext()).getSettings().getRCServerTCPPort();
 			remoteControlServer.service(serverPort);
 		}
 	}
@@ -51,11 +48,16 @@ public class RemoteControlManager implements SensorEventListener {
 
 		@Override
 		public void run() {
-			serverPort = ((ArduinoADK) RemoteControlManager.this.context
-					.getApplicationContext()).getSettings()
-					.getRCServerTCPPort();
-			host = ((ArduinoADK) RemoteControlManager.this.context
-					.getApplicationContext()).getSettings().getRCServer();
+			/*
+			 * It is not necessary to get accelerometer events at a very high
+			 * rate, by using a slower rate (SENSOR_DELAY_UI), we get an
+			 * automatic low-pass filter, which "extracts" the gravity component
+			 * of the acceleration. As an added benefit, we use less power and
+			 * CPU resources.
+			 */
+			sensorManager.registerListener(RemoteControlManager.this, accelerometer, SensorManager.SENSOR_DELAY_UI);
+			serverPort = ((ArduinoADK) RemoteControlManager.this.context.getApplicationContext()).getSettings().getRCServerTCPPort();
+			host = ((ArduinoADK) RemoteControlManager.this.context.getApplicationContext()).getSettings().getRCServer();
 			remoteControlClient.connect(host, serverPort);
 		}
 
@@ -64,61 +66,43 @@ public class RemoteControlManager implements SensorEventListener {
 	public RemoteControlManager(Context context) {
 		this.context = context;
 		this.remoteControlServer = new TCPServer();
-		this.remoteControlServer
-				.setClientHandler(new RemoteControlClientHandler(
-						this.usbAccessoryManager));
+		this.remoteControlServer.setClientHandler(new RemoteControlClientHandler(this.usbAccessoryManager));
 		this.remoteControlClient = new TCPClient();
 	}
 
 	public void startServer() {
 		if (rcServerWorkerThread == null) {
-			rcServerWorkerThread = new Thread(new RCServerRunnable(),
-					RCServerRunnable.class.getSimpleName() + "Thead");
+			rcServerWorkerThread = new Thread(new RCServerRunnable(), RCServerRunnable.class.getSimpleName() + "Thead");
 			rcServerWorkerThread.start();
 		}
 	}
 
 	public void startClient() {
 		if (rcClientWorkerThread == null) {
-			/*
-			 * It is not necessary to get accelerometer events at a very high
-			 * rate, by using a slower rate (SENSOR_DELAY_UI), we get an
-			 * automatic low-pass filter, which "extracts" the gravity component
-			 * of the acceleration. As an added benefit, we use less power and
-			 * CPU resources.
-			 */
-			sensorManager.registerListener(this, accelerometer,
-					SensorManager.SENSOR_DELAY_UI);
-			// this.getArduinoADKApplication().getRemoteControlManager().startClient();
-
-			Log.d(TAG,
-					"accelerometer maxRange=" + accelerometer.getMaximumRange());
-
-			rcClientWorkerThread = new Thread(new RCClientRunnable(),
-					RCClientRunnable.class.getSimpleName() + "Thead");
+			rcClientWorkerThread = new Thread(new RCClientRunnable(), RCClientRunnable.class.getSimpleName() + "Thead");
 			rcClientWorkerThread.start();
 		}
 	}
 
 	public boolean isServerStarted() {
-		return rcServerWorkerThread != null && rcServerWorkerThread.isAlive();
+		return rcServerWorkerThread != null;
 	}
 
 	public boolean isClientStarted() {
-		return rcClientWorkerThread != null && rcClientWorkerThread.isAlive();
+		return rcClientWorkerThread != null;
 	}
 
 	public void stopServer() {
-		remoteControlServer.stop();
 		if (rcServerWorkerThread != null) {
+			remoteControlServer.stop();
 			rcServerWorkerThread.interrupt();
 			rcServerWorkerThread = null;
 		}
 	}
 
 	public void stopClient() {
-		remoteControlClient.stop();
 		if (rcClientWorkerThread != null) {
+			remoteControlClient.stop();
 			sensorManager.unregisterListener(this);
 			rcClientWorkerThread.interrupt();
 			rcClientWorkerThread = null;
@@ -132,14 +116,11 @@ public class RemoteControlManager implements SensorEventListener {
 	public String getIpInfo() {
 		StringBuffer s = new StringBuffer();
 		// Determines if user is connected to a wireless network & displays ip
-		WifiManager wifiManager = (WifiManager) this.context
-				.getSystemService(Context.WIFI_SERVICE);
+		WifiManager wifiManager = (WifiManager) this.context.getSystemService(Context.WIFI_SERVICE);
 		WifiInfo wifiInfo = wifiManager.getConnectionInfo();
 		if (wifiInfo.getNetworkId() > -1) {
 			int ipAddress = wifiInfo.getIpAddress();
-			byte[] byteaddr = new byte[] { (byte) (ipAddress & 0xff),
-					(byte) (ipAddress >> 8 & 0xff),
-					(byte) (ipAddress >> 16 & 0xff),
+			byte[] byteaddr = new byte[] { (byte) (ipAddress & 0xff), (byte) (ipAddress >> 8 & 0xff), (byte) (ipAddress >> 16 & 0xff),
 					(byte) (ipAddress >> 24 & 0xff) };
 			InetAddress inetAddress;
 			try {
@@ -168,16 +149,15 @@ public class RemoteControlManager implements SensorEventListener {
 
 	public void onCreate() {
 		// Get an instance of the SensorManager
-		sensorManager = (SensorManager) this.context
-				.getSystemService(this.context.SENSOR_SERVICE);
-		accelerometer = sensorManager
-				.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		sensorManager = (SensorManager) this.context.getSystemService(this.context.SENSOR_SERVICE);
+		accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 	}
 
 	public void setPosition(float x, float y) {
-		remoteControlClient.writeContent("STICK:x=" + x + ":y=" + y + "\n");
-		Message m = Message.obtain(handler,
-				WhatAbout.RCCLIENT_POSITION.ordinal());
+		if (!remoteControlClient.isRunning()) {
+			remoteControlClient.writeContent("STICK:x=" + x + ":y=" + y + "\n");
+		}
+		Message m = Message.obtain(handler, WhatAbout.RCCLIENT_POSITION.ordinal());
 		m.obj = new PositionMessage(x, y);
 		handler.sendMessage(m);
 	}

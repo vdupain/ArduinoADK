@@ -3,10 +3,8 @@ package com.company.android.arduinoadk.remotecontrol;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
-import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.Toast;
 
 /**
  * This service is only used to contain the RemoteControlServer running in the
@@ -15,8 +13,7 @@ import android.widget.Toast;
  */
 public class RemoteControlService extends Service {
 
-	private static final String TAG = RemoteControlService.class
-			.getSimpleName();
+	private static final String TAG = RemoteControlService.class.getSimpleName();
 
 	// Binder given to clients
 	private final IBinder binder = new RemoteControlBinder();
@@ -42,8 +39,7 @@ public class RemoteControlService extends Service {
 		// The service is being created
 		Log.d(TAG, "onCreate");
 		if (remoteControlManager == null) {
-			remoteControlManager = new RemoteControlManager(
-					this.getApplicationContext());
+			remoteControlManager = new RemoteControlManager(this.getApplicationContext());
 			remoteControlManager.onCreate();
 		}
 	}
@@ -61,7 +57,6 @@ public class RemoteControlService extends Service {
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		// The service is starting, due to a call to startService()
 		Log.d(TAG, "onStartCommand startId " + startId + ": intent " + intent);
-		Toast.makeText(this, "onStartCommand", Toast.LENGTH_SHORT).show();
 		// We want this service to continue running until it is explicitly
 		// stopped, so return sticky.
 		return START_STICKY;

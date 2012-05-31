@@ -6,7 +6,6 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.os.Handler;
 import android.os.Message;
@@ -17,7 +16,8 @@ import com.company.android.arduinoadk.WhatAbout;
 public class TCPServer {
 	private static final String TAG = TCPServer.class.getSimpleName();
 
-	private AtomicBoolean stop = new AtomicBoolean(false);
+	private boolean stop = false;
+	private boolean isRunning = false;
 	private Handler handler;
 	private int port;
 	private ClientHandler clientHandler;
@@ -26,6 +26,8 @@ public class TCPServer {
 	}
 
 	public void service(int port) {
+		isRunning = true;
+		stop = false;
 		this.port = port;
 		ServerSocket serverSocket = null;
 		Socket clientSocket = null;
@@ -35,13 +37,11 @@ public class TCPServer {
 			serverSocket.setSoTimeout(1000);
 			// One client handled at a time only
 			ExecutorService pool = Executors.newSingleThreadExecutor();
-			this.handler.sendMessage(Message.obtain(handler,
-					WhatAbout.SERVER_START.ordinal()));
+			this.handler.sendMessage(Message.obtain(handler, WhatAbout.SERVER_START.ordinal()));
 			log("Accept client connection...");
-			while (!stop.get()) {
+			while (!stop) {
 				try {
-					Log.d(TAG, "Waiting for " + serverSocket.getSoTimeout()
-							+ "ms an incoming request...");
+					Log.d(TAG, "Waiting for " + serverSocket.getSoTimeout() + "ms an incoming request...");
 					clientSocket = serverSocket.accept();
 					clientHandler.setSocket(clientSocket);
 					clientHandler.setHandler(handler);
@@ -57,9 +57,7 @@ public class TCPServer {
 				try {
 					serverSocket.close();
 					serverSocket = null;
-					this.stop.set(false);
-					this.handler.sendMessage(Message.obtain(handler,
-							WhatAbout.SERVER_STOP.ordinal()));
+					this.handler.sendMessage(Message.obtain(handler, WhatAbout.SERVER_STOP.ordinal()));
 				} catch (IOException e) {
 					Log.e(TAG, e.getMessage(), e);
 				}
@@ -72,11 +70,12 @@ public class TCPServer {
 					Log.e(TAG, e.getMessage(), e);
 				}
 			}
+			this.stop = true;
 		}
 	}
 
 	public void stop() {
-		this.stop.set(true);
+		this.stop = true;
 	}
 
 	public int getPort() {
@@ -93,8 +92,7 @@ public class TCPServer {
 	}
 
 	private void sendMessage(String text) {
-		Message message = Message.obtain(handler,
-				WhatAbout.SERVER_LOG.ordinal(), text);
+		Message message = Message.obtain(handler, WhatAbout.SERVER_LOG.ordinal(), text);
 		this.handler.sendMessage(message);
 	}
 

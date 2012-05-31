@@ -6,18 +6,18 @@ import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import com.company.android.arduinoadk.WhatAbout;
 
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import com.company.android.arduinoadk.WhatAbout;
+
 public class TCPClient {
 	private final String TAG = TCPClient.class.getSimpleName();
 
-	private AtomicBoolean stop = new AtomicBoolean(false);
+	private boolean stop = true;
+	private boolean isRunning = false;
 	private Socket socket = null;
 	private InputStream inputStream;
 	private OutputStream outputStream;
@@ -29,12 +29,14 @@ public class TCPClient {
 	}
 
 	public void connect(String host, int port) {
+		isRunning = true;
+		stop = false;
 		int len = 0;
 		try {
 			socket = new Socket(host, port);
 			inputStream = socket.getInputStream();
 			outputStream = socket.getOutputStream();
-			while (!stop.get()) {
+			while (!stop) {
 				try {
 					len = inputStream.read(buffer, 0, buffer.length);
 				} catch (IOException e) {
@@ -46,18 +48,17 @@ public class TCPClient {
 				handleRequest(request);
 			}
 		} catch (UnknownHostException e) {
-			Log.e(TAG, e.getMessage(), e);
-			this.handler.sendMessage(Message.obtain(handler,
-					WhatAbout.SERVER_CONNECTION_FAILURE.ordinal(), e));
+			Log.w(TAG, e.getMessage(), e);
+			this.handler.sendMessage(Message.obtain(handler, WhatAbout.SERVER_CONNECTION_FAILURE.ordinal(), e));
 		} catch (ConnectException e) {
-			Log.e(TAG, e.getMessage(), e);
-			this.handler.sendMessage(Message.obtain(handler,
-					WhatAbout.SERVER_CONNECTION_FAILURE.ordinal(), e));
+			Log.w(TAG, e.getMessage(), e);
+			this.handler.sendMessage(Message.obtain(handler, WhatAbout.SERVER_CONNECTION_FAILURE.ordinal(), e));
 
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
 		} finally {
 			closeResources();
+			stop = true;
 		}
 
 	}
@@ -67,18 +68,15 @@ public class TCPClient {
 	}
 
 	public void stop() {
-		this.stop.set(true);
+		this.stop = true;
 	}
 
 	public void writeContent(String content) {
 		Log.d(TAG, content);
-		if (outputStream != null && content != null) {
-
-			try {
-				outputStream.write(content.getBytes(), 0, content.length());
-			} catch (IOException e) {
-				Log.e(TAG, e.getMessage(), e);
-			}
+		try {
+			outputStream.write(content.getBytes(), 0, content.length());
+		} catch (IOException e) {
+			Log.e(TAG, e.getMessage(), e);
 		}
 	}
 
@@ -113,6 +111,10 @@ public class TCPClient {
 
 	public void setHandler(Handler handler) {
 		this.handler = handler;
+	}
+
+	public boolean isRunning() {
+		return !stop;
 	}
 
 }

@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.company.android.arduinoadk.MainActivity;
 import com.company.android.arduinoadk.R;
@@ -54,8 +53,7 @@ public class UsbAccessoryService extends Service {
 		Log.d(TAG, "onCreate");
 
 		if (usbAccessoryManager == null) {
-			usbAccessoryManager = new UsbAccessoryManager(
-					this.getApplicationContext());
+			usbAccessoryManager = new UsbAccessoryManager(this.getApplicationContext());
 		}
 		usbAccessoryManager.setupUsbAccessory();
 		usbAccessoryManager.openUsbAccessory();
@@ -73,10 +71,6 @@ public class UsbAccessoryService extends Service {
 		Log.d(TAG, "onDestroy");
 		// Cancel the persistent notification.
 		clearNotification();
-		// Tell the user we stopped.
-		Toast.makeText(this, R.string.service_stopped, Toast.LENGTH_SHORT)
-				.show();
-
 		usbAccessoryManager.closeUsbAccessory();
 		usbAccessoryManager.unregisterReceiver();
 	}
@@ -85,7 +79,6 @@ public class UsbAccessoryService extends Service {
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		// The service is starting, due to a call to startService()
 		Log.d(TAG, "onStartCommand startId " + startId + ": intent " + intent);
-		Toast.makeText(this, "onStartCommand", Toast.LENGTH_SHORT).show();
 		// We want this service to continue running until it is explicitly
 		// stopped, so return sticky.
 		return START_STICKY;
@@ -116,14 +109,10 @@ public class UsbAccessoryService extends Service {
 		CharSequence text = getText(R.string.service_started);
 		// The PendingIntent to launch our activity if the user selects this
 		// notification
-		PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-				new Intent(this, MainActivity.class), 0);
+		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
 		// Set the info for the views that show in the notification panel.
-		Notification notification = new Notification.Builder(this)
-				.setTicker(text).setWhen(System.currentTimeMillis())
-				.setSmallIcon(R.drawable.ic_launcher).setContentText(text)
-				.setContentTitle(getText(R.string.service_label))
-				.setContentIntent(contentIntent).getNotification();
+		Notification notification = new Notification.Builder(this).setTicker(text).setWhen(System.currentTimeMillis()).setSmallIcon(R.drawable.ic_launcher)
+				.setContentText(text).setContentTitle(getText(R.string.service_label)).setContentIntent(contentIntent).getNotification();
 		// Send the notification.
 		// We use a string id because it is a unique number. We use it later to
 		// cancel.
