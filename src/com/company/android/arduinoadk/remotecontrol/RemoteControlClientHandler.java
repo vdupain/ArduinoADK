@@ -83,7 +83,7 @@ public class RemoteControlClientHandler implements Runnable {
 		if (outputStream != null) {
 			try {
 				outputStream.close();
-				inputStream = null;
+				outputStream = null;
 			} catch (IOException e) {
 				Log.e(TAG, e.getMessage(), e);
 			}

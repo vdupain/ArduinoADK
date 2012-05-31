@@ -5,8 +5,8 @@
     android:orientation="vertical" >
 
     <fragment
-        android:id="@+id/rcClientFragment"
-        android:name="com.company.android.arduinoadk.RCClientFragment"
+        android:id="@+id/remoteControlClientFragment"
+        android:name="com.company.android.arduinoadk.RemoteControlClientFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
         <!-- Preview: layout=@layout/rcclient_fragment -->

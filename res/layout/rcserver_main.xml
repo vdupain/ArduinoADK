@@ -5,8 +5,8 @@
     android:orientation="vertical" >
 
     <fragment
-        android:id="@+id/rcServerFragment"
-        android:name="com.company.android.arduinoadk.RCServerFragment"
+        android:id="@+id/remoteControlServerFragment"
+        android:name="com.company.android.arduinoadk.RemoteControlServerFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
 

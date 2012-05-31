@@ -81,7 +81,7 @@ public class RemoteControlServer {
 		}
 	}
 
-	public void stopServer() {
+	public void stop() {
 		this.stopServer.set(true);
 	}
 

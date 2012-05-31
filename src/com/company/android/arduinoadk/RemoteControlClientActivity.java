@@ -3,10 +3,14 @@ package com.company.android.arduinoadk;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.view.Display;
+import android.view.WindowManager;
 
 public class RemoteControlClientActivity extends BaseActivity {
 	private SensorManager sensorManager;
 	private Sensor accelerometer;
+	private WindowManager windowManager;
+	private Display display;
 
 	private RemoteControlClientController controller;
 
@@ -18,8 +22,12 @@ public class RemoteControlClientActivity extends BaseActivity {
 		// Get an instance of the SensorManager
 		sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
-		accelerometer = sensorManager
-				.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+		// Get an instance of the WindowManager
+		windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+		display = windowManager.getDefaultDisplay();
+
 		initControllers();
 	}
 
@@ -38,17 +46,23 @@ public class RemoteControlClientActivity extends BaseActivity {
 		 * acceleration. As an added benefit, we use less power and CPU
 		 * resources.
 		 */
-		sensorManager.registerListener(controller, accelerometer,
-				SensorManager.SENSOR_DELAY_UI);
+		sensorManager.registerListener(controller, accelerometer, SensorManager.SENSOR_DELAY_UI);
+		this.getArduinoADKApplication().getRemoteControlManager().startClient();
 	}
 
 	@Override
 	public void onPause() {
 		super.onPause();
+		this.getArduinoADKApplication().getRemoteControlManager().stopClient();
 		sensorManager.unregisterListener(controller);
 	}
 
 	@Override
 	void onQuit() {
 	}
+
+	public Display getDisplay() {
+		return display;
+	}
+
 }

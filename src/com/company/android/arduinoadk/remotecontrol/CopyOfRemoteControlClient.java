@@ -8,11 +8,11 @@ import java.net.UnknownHostException;
 
 import android.util.Log;
 
-public class RemoteControlClient implements Runnable {
+public class CopyOfRemoteControlClient implements Runnable {
 	private final String TAG = RemoteControlClientHandler.class.getSimpleName();
 
-	private String host;
-	private int port;
+	private final String host;
+	private final int port;
 	private Socket socket;
 	private InputStream inputStream;
 	private OutputStream outputStream;
@@ -21,12 +21,7 @@ public class RemoteControlClient implements Runnable {
 	private int bufferLast;
 	private Thread thread;
 
-	public RemoteControlClient() {
-
-	}
-
-	public RemoteControlClient(String host, int port) {
-		/*
+	public CopyOfRemoteControlClient(String host, int port) {
 		this.host = host;
 		this.port = port;
 
@@ -41,7 +36,6 @@ public class RemoteControlClient implements Runnable {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		*/
 	}
 
 	public void stop() {
@@ -138,6 +132,6 @@ public class RemoteControlClient implements Runnable {
 
 	public void connect(String host2, int serverPort) {
 		// TODO Auto-generated method stub
-
+		
 	}
 }

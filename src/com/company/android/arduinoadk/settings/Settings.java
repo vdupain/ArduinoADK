@@ -26,7 +26,11 @@ public class Settings {
 	public int getRCServerTCPPort() {
 		return Integer.valueOf(this.preferences.getString("tcp_port", "12345"));
 	}
-	
+
+	public String getRCServer() {
+		return this.preferences.getString("rc_server", "");
+	}
+
 	public boolean isPreventGoingToSleep() {
 		return this.preferences.getBoolean("prevent_going_to_sleep", true);
 	}

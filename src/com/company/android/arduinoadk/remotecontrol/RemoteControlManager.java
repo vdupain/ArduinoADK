@@ -12,51 +12,81 @@ import android.util.Log;
 import com.company.android.arduinoadk.ArduinoADK;
 import com.company.android.arduinoadk.usb.UsbAccessoryManager;
 
-public class RemoteControlManager implements Runnable {
-	private static final String TAG = RemoteControlManager.class
-			.getSimpleName();
+public class RemoteControlManager {
+	private static final String TAG = RemoteControlManager.class.getSimpleName();
 
 	private RemoteControlServer remoteControlServer;
+	private RemoteControlClient remoteClientClient;
 	private UsbAccessoryManager usbAccessoryManager;
 	private Handler handler;
 	private final Context context;
-	private int port;
-	private Thread workerThread;
+	private int serverPort;
+	private String host;
+	private Thread rcServerWorkerThread;
+	private Thread rcClientWorkerThread;
+
+	class RCServerRunnable implements Runnable {
+		@Override
+		public void run() {
+			serverPort = ((ArduinoADK) RemoteControlManager.this.context.getApplicationContext()).getSettings().getRCServerTCPPort();
+			remoteControlServer.service(serverPort);
+		}
+	}
+
+	class RCClientRunnable implements Runnable {
+
+		@Override
+		public void run() {
+			serverPort = ((ArduinoADK) RemoteControlManager.this.context.getApplicationContext()).getSettings().getRCServerTCPPort();
+			host = ((ArduinoADK) RemoteControlManager.this.context.getApplicationContext()).getSettings().getRCServer();
+			remoteClientClient.connect(host, serverPort);
+		}
+
+	}
 
 	public RemoteControlManager(Context context, Handler messageHandler) {
 		this.context = context;
 		this.handler = messageHandler;
-		this.remoteControlServer = new RemoteControlServer(usbAccessoryManager,
-				handler);
+		this.remoteControlServer = new RemoteControlServer(usbAccessoryManager, handler);
+		this.remoteClientClient = new RemoteControlClient(host, serverPort);
 	}
 
-	public void start() {
-		if (workerThread == null) {
-			workerThread = new Thread(this,
-					RemoteControlManager.class.getSimpleName() + "Thead");
-			workerThread.start();
+	public void startServer() {
+		if (rcServerWorkerThread == null) {
+			rcServerWorkerThread = new Thread(new RCServerRunnable(), RemoteControlManager.class.getSimpleName() + "Thead");
+			rcServerWorkerThread.start();
 		}
 	}
 
-	public boolean isStarted() {
-		if (workerThread != null)
-			return workerThread.isAlive();
-		return false;
-	}
-
-	public void stop() {
-		remoteControlServer.stopServer();
-		if (workerThread != null) {
-			workerThread.interrupt();
-			workerThread = null;
+	public void startClient() {
+		if (rcClientWorkerThread == null) {
+			rcClientWorkerThread = new Thread(new RCClientRunnable(), RemoteControlManager.class.getSimpleName() + "Thead");
+			rcClientWorkerThread.start();
 		}
 	}
 
-	@Override
-	public void run() {
-		this.port = ((ArduinoADK) this.context.getApplicationContext())
-				.getSettings().getRCServerTCPPort();
-		remoteControlServer.service(port);
+	public boolean isServerStarted() {
+		return rcServerWorkerThread != null && rcServerWorkerThread.isAlive();
+	}
+
+	public boolean isClientStarted() {
+		return rcClientWorkerThread != null && rcClientWorkerThread.isAlive();
+	}
+
+	public void stopServer() {
+		remoteControlServer.stop();
+		if (rcServerWorkerThread != null) {
+			rcServerWorkerThread.interrupt();
+			rcServerWorkerThread = null;
+		}
+	}
+
+	public void stopClient() {
+		remoteClientClient.stop();
+		if (rcClientWorkerThread != null) {
+			rcClientWorkerThread.interrupt();
+			rcClientWorkerThread = null;
+		}
 	}
 
 	public void setUsbAccessoryManager(UsbAccessoryManager usbAccessoryManager) {
@@ -66,14 +96,11 @@ public class RemoteControlManager implements Runnable {
 	public String getIpInfo() {
 		StringBuffer s = new StringBuffer();
 		// Determines if user is connected to a wireless network & displays ip
-		WifiManager wifiManager = (WifiManager) this.context
-				.getSystemService(Context.WIFI_SERVICE);
+		WifiManager wifiManager = (WifiManager) this.context.getSystemService(Context.WIFI_SERVICE);
 		WifiInfo wifiInfo = wifiManager.getConnectionInfo();
 		if (wifiInfo.getNetworkId() > -1) {
 			int ipAddress = wifiInfo.getIpAddress();
-			byte[] byteaddr = new byte[] { (byte) (ipAddress & 0xff),
-					(byte) (ipAddress >> 8 & 0xff),
-					(byte) (ipAddress >> 16 & 0xff),
+			byte[] byteaddr = new byte[] { (byte) (ipAddress & 0xff), (byte) (ipAddress >> 8 & 0xff), (byte) (ipAddress >> 16 & 0xff),
 					(byte) (ipAddress >> 24 & 0xff) };
 			InetAddress inetAddress;
 			try {

@@ -6,12 +6,15 @@ import android.app.Application.ActivityLifecycleCallbacks;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.company.android.arduinoadk.remotecontrol.RemoteControlManager;
 import com.company.android.arduinoadk.settings.Settings;
 
 public class ArduinoADK extends Application implements ActivityLifecycleCallbacks {
 	private static final String TAG = ArduinoADK.class.getSimpleName();
 
 	private Settings settings;
+
+	private RemoteControlManager remoteControlManager;
 
 	@Override
 	public void onCreate() {
@@ -22,6 +25,14 @@ public class ArduinoADK extends Application implements ActivityLifecycleCallback
 
 	public Settings getSettings() {
 		return settings;
+	}
+
+	public void setRemoteControlManager(RemoteControlManager remoteControlManager) {
+		this.remoteControlManager = remoteControlManager;
+	}
+
+	public RemoteControlManager getRemoteControlManager() {
+		return this.remoteControlManager;
 	}
 
 	@Override
@@ -58,4 +69,5 @@ public class ArduinoADK extends Application implements ActivityLifecycleCallback
 	public void onActivityDestroyed(Activity activity) {
 		Log.d(TAG, "onActivityDestroyed:" + activity.getClass().getSimpleName());
 	}
+
 }

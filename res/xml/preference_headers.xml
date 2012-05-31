@@ -7,9 +7,9 @@
         android:title="Application" >
     </header>
     <header
-        android:fragment="com.company.android.arduinoadk.SettingsActivity$RCServerSettingsPreferenceFragment"
-        android:summary="Remote Control server settings."
-        android:title="Remote Control Server" >
+        android:fragment="com.company.android.arduinoadk.SettingsActivity$RemoteControlSettingsPreferenceFragment"
+        android:summary="Remote Control settings."
+        android:title="Remote Control" >
     </header>
     <header
         android:fragment="com.company.android.arduinoadk.SettingsActivity$ArduinoSettingsPreferenceFragment"

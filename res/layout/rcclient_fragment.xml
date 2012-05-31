@@ -1,33 +1,23 @@
-<TableLayout
-	xmlns:android="http://schemas.android.com/apk/res/android"
-	android:layout_width="fill_parent"
-	android:layout_height="fill_parent">
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
 
-	<TableRow>
-	<TextView
-		android:id="@+id/xcoor"
-		android:text="X Coordinate: "
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-	/>
-	</TableRow>
+    <TableRow>
 
-	<TableRow>
-	<TextView
-		android:id="@+id/ycoor"
-		android:text="Y Coordinate: "
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-	/>
-	</TableRow>
+        <TextView
+            android:id="@+id/xcoor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="X Coordinate: " />
+    </TableRow>
 
-	<TableRow>
-	<TextView
-		android:id="@+id/zcoor"
-		android:text="Z Coordinate: "
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-	/>
-	</TableRow>
+    <TableRow>
+
+        <TextView
+            android:id="@+id/ycoor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Y Coordinate: " />
+    </TableRow>
 
 </TableLayout>

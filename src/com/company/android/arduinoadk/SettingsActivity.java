@@ -34,14 +34,14 @@ public class SettingsActivity extends PreferenceActivity {
 	}
 
 	/**
-	 * This fragment shows the RCServer preferences.
+	 * This fragment shows the RC preferences.
 	 */
-	public static class RCServerSettingsPreferenceFragment extends PreferenceFragment {
+	public static class RemoteControlSettingsPreferenceFragment extends PreferenceFragment {
 		@Override
 		public void onCreate(Bundle savedInstanceState) {
 			super.onCreate(savedInstanceState);
 			// Load the preferences from an XML resource
-			addPreferencesFromResource(R.xml.rcserver_preferences);
+			addPreferencesFromResource(R.xml.remotecontrol_preferences);
 		}
 	}
 

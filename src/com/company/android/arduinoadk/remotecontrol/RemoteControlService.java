@@ -58,7 +58,7 @@ public class RemoteControlService extends Service {
 			return RemoteControlService.this;
 		}
 
-		public RemoteControlManager getRCServerManager() {
+		public RemoteControlManager getRemoteControlManager() {
 			return RemoteControlService.this.remoteControlManager;
 		}
 	}
@@ -77,7 +77,7 @@ public class RemoteControlService extends Service {
 	public void onDestroy() {
 		// The service is no longer used and is being destroyed
 		Log.d(TAG, "onDestroy");
-		remoteControlManager.stop();
+		remoteControlManager.stopServer();
 		remoteControlManager = null;
 	}
 
