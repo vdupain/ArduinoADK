@@ -1,68 +1,108 @@
 package com.company.android.arduinoadk;
 
-import android.hardware.Sensor;
-import android.hardware.SensorManager;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
-import android.view.Display;
-import android.view.WindowManager;
+import android.os.Handler;
+import android.os.Message;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.Switch;
 
-public class RemoteControlClientActivity extends BaseActivity {
-	private SensorManager sensorManager;
-	private Sensor accelerometer;
-	private WindowManager windowManager;
-	private Display display;
+import com.company.android.arduinoadk.remotecontrol.PositionMessage;
 
+public class RemoteControlClientActivity extends BaseActivity implements
+		OnCheckedChangeListener {
+	private Switch switchRCClient;
 	private RemoteControlClientController controller;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
 		setContentView(R.layout.rcclient_main);
-		// Get an instance of the SensorManager
-		sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-
-		accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-
-		// Get an instance of the WindowManager
-		windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-		display = windowManager.getDefaultDisplay();
-
-		initControllers();
+		RemoteControlClientFragment fragment = (RemoteControlClientFragment) getFragmentManager()
+				.findFragmentById(R.id.remoteControlClientFragment);
+		switchRCClient = (Switch) fragment.getView().findViewById(
+				R.id.switchRCClient);
+		initController();
 	}
 
-	@Override
-	void initControllers() {
-		controller = new RemoteControlClientController(this);
-	}
+	protected Handler handler = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			switch (WhatAbout.values()[msg.what]) {
+			case RCCLIENT_POSITION:
+				handlePositionMessage((PositionMessage) msg.obj);
+				break;
+			case SERVER_CONNECTION_FAILURE:
+				handleServerConnectionFailure((Exception) msg.obj);
+				break;
+			default:
+				break;
+			}
+		}
+	};
 
 	@Override
 	public void onResume() {
 		super.onResume();
-		/*
-		 * It is not necessary to get accelerometer events at a very high rate,
-		 * by using a slower rate (SENSOR_DELAY_UI), we get an automatic
-		 * low-pass filter, which "extracts" the gravity component of the
-		 * acceleration. As an added benefit, we use less power and CPU
-		 * resources.
-		 */
-		sensorManager.registerListener(controller, accelerometer, SensorManager.SENSOR_DELAY_UI);
-		this.getArduinoADKApplication().getRemoteControlManager().startClient();
+		switchRCClient.setChecked(getArduinoADKApplication()
+				.getRemoteControlManager().isClientStarted());
+		switchRCClient.setOnCheckedChangeListener(this);
+		this.getArduinoADKApplication().getRemoteControlManager()
+				.setHandler(handler);
+		this.getArduinoADKApplication().getRemoteControlManager()
+				.getRemoteControlClient().setHandler(handler);
+	}
+
+	private void handlePositionMessage(PositionMessage positionMessage) {
+		controller.setPosition(positionMessage.getX(), positionMessage.getY());
+	}
+
+	private void handleServerConnectionFailure(Exception ex) {
+		switchRCClient.setChecked(false);
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("Server connection failure")
+				.setMessage(ex.getMessage()).setCancelable(false)
+				.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int id) {
+					}
+				});
+		AlertDialog alert = builder.create();
+		alert.show();
 	}
 
 	@Override
 	public void onPause() {
 		super.onPause();
-		this.getArduinoADKApplication().getRemoteControlManager().stopClient();
-		sensorManager.unregisterListener(controller);
+	}
+
+	@Override
+	void initController() {
+		controller = new RemoteControlClientController(this);
 	}
 
 	@Override
 	void onQuit() {
 	}
 
-	public Display getDisplay() {
-		return display;
+	public void setPosition(float x, float y) {
+		controller.setPosition(x, y);
+	}
+
+	@Override
+	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+		switch (buttonView.getId()) {
+		case R.id.switchRCClient:
+			if (buttonView.isChecked()) {
+				getArduinoADKApplication().getRemoteControlManager()
+						.startClient();
+			} else {
+				getArduinoADKApplication().getRemoteControlManager()
+						.stopClient();
+			}
+			break;
+		}
 	}
 
 }

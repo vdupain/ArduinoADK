@@ -4,6 +4,15 @@
 
     <TableRow>
 
+        <Switch
+            android:id="@+id/switchRCClient"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="@string/rcclient" />
+    </TableRow>
+
+    <TableRow>
+
         <TextView
             android:id="@+id/xcoor"
             android:layout_width="wrap_content"

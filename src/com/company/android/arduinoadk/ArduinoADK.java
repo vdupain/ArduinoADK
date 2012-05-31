@@ -37,37 +37,37 @@ public class ArduinoADK extends Application implements ActivityLifecycleCallback
 
 	@Override
 	public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-		Log.d(TAG, "onActivityCreated:" + activity.getClass().getSimpleName());
+//		Log.d(TAG, "onActivityCreated:" + activity.getClass().getSimpleName());
 	}
 
 	@Override
 	public void onActivityStarted(Activity activity) {
-		Log.d(TAG, "onActivityStarted:" + activity.getClass().getSimpleName());
+//		Log.d(TAG, "onActivityStarted:" + activity.getClass().getSimpleName());
 	}
 
 	@Override
 	public void onActivityResumed(Activity activity) {
-		Log.d(TAG, "onActivityResumed:" + activity.getClass().getSimpleName());
+//		Log.d(TAG, "onActivityResumed:" + activity.getClass().getSimpleName());
 	}
 
 	@Override
 	public void onActivityPaused(Activity activity) {
-		Log.d(TAG, "onActivityPaused:" + activity.getClass().getSimpleName());
+//		Log.d(TAG, "onActivityPaused:" + activity.getClass().getSimpleName());
 	}
 
 	@Override
 	public void onActivityStopped(Activity activity) {
-		Log.d(TAG, "onActivityStopped:" + activity.getClass().getSimpleName());
+//		Log.d(TAG, "onActivityStopped:" + activity.getClass().getSimpleName());
 	}
 
 	@Override
 	public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-		Log.d(TAG, "onActivitySaveInstanceState:" + activity.getClass().getSimpleName());
+//		Log.d(TAG, "onActivitySaveInstanceState:" + activity.getClass().getSimpleName());
 	}
 
 	@Override
 	public void onActivityDestroyed(Activity activity) {
-		Log.d(TAG, "onActivityDestroyed:" + activity.getClass().getSimpleName());
+//		Log.d(TAG, "onActivityDestroyed:" + activity.getClass().getSimpleName());
 	}
 
 }

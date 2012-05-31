@@ -19,12 +19,11 @@ public class ArduinoManager implements Runnable {
 
 	private Handler handler;
 
-	public ArduinoManager(UsbAccessoryManager usbAccessoryManager, Handler handler) {
+	public ArduinoManager(UsbAccessoryManager usbAccessoryManager) {
 		if (usbAccessoryManager != null) {
 			this.outputStream = usbAccessoryManager.getOutputStream();
 			this.inputStream = usbAccessoryManager.getInputStream();
 		}
-		this.handler = handler;
 	}
 
 	public void sendSafeStickCommand() {
@@ -35,20 +34,6 @@ public class ArduinoManager implements Runnable {
 		byte x = (byte) (valueX);
 		byte y = (byte) (valueY);
 		this.sendCommand((byte) 3, x, y);
-		// this.sendCommand((byte) 2, (byte) 0x01, x);
-		// this.sendCommand((byte) 2, (byte) 0x02, y);
-	}
-
-	public void sendTestSequence() {
-		this.sendStickCommand(90, 90);
-		this.sendStickCommand(0, 90);
-		this.sendStickCommand(90, 90);
-		this.sendStickCommand(180, 90);
-		this.sendStickCommand(90, 90);
-		this.sendStickCommand(90, 0);
-		this.sendStickCommand(90, 90);
-		this.sendStickCommand(90, 180);
-		this.sendStickCommand(90, 90);
 	}
 
 	@Override
@@ -74,15 +59,19 @@ public class ArduinoManager implements Runnable {
 						// unsigned byte on arduino and signed in Java so...
 						int angleServo1 = buffer[i + 1] & 0xFF;
 						int angleServo2 = buffer[i + 2] & 0xFF;
-						Log.d(TAG, "position servos:" + angleServo1 + " - " + angleServo2);
-						Message message = Message.obtain(handler, WhatAbout.ARDUINO.ordinal(), angleServo1 + " - " + angleServo2);
+						Log.d(TAG, "position servos:" + angleServo1 + " - "
+								+ angleServo2);
+						Message message = Message.obtain(handler,
+								WhatAbout.ARDUINO.ordinal(), angleServo1
+										+ " - " + angleServo2);
 						this.handler.sendMessage(message);
 					}
 					i += 3;
 					break;
 				case 0x6:
 					if (len >= 3) {
-						Message m = Message.obtain(handler, WhatAbout.TELEMETRY.ordinal());
+						Message m = Message.obtain(handler,
+								WhatAbout.TELEMETRY.ordinal());
 						// unsigned byte on arduino and signed in Java so...
 						int degree = buffer[i + 1] & 0xFF;
 						int distance = buffer[i + 2] & 0xFF;
@@ -117,13 +106,15 @@ public class ArduinoManager implements Runnable {
 		buffer[2] = (byte) value;
 		if (outputStream != null && buffer[1] != -1) {
 			try {
-				// synchronized (outputStream) {
 				outputStream.write(buffer);
-				// }
 			} catch (IOException e) {
 				Log.e(TAG, e.getMessage(), e);
 			}
 		}
+	}
+
+	public void setHandler(Handler handler) {
+		this.handler = handler;
 	}
 
 }

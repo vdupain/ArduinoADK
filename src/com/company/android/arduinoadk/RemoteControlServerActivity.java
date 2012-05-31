@@ -3,7 +3,9 @@ package com.company.android.arduinoadk;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.util.Log;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
@@ -17,28 +19,62 @@ import com.company.android.arduinoadk.usb.UsbAccessoryManager;
 import com.company.android.arduinoadk.usb.UsbAccessoryService;
 import com.company.android.arduinoadk.usb.UsbAccessoryService.UsbAccessoryBinder;
 
-public class RemoteControlServerActivity extends BaseActivity implements ServiceConnected, OnCheckedChangeListener {
-	private static final String TAG = RemoteControlServerActivity.class.getSimpleName();
+public class RemoteControlServerActivity extends BaseActivity implements
+		ServiceConnected, OnCheckedChangeListener {
+	private static final String TAG = RemoteControlServerActivity.class
+			.getSimpleName();
 
-	public RemoteControlController rcServerController;
-	private Switch switchRcServer;
+	public RemoteControlController controller;
+	private Switch switchRCServer;
 
 	/** Defines callbacks for service binding, passed to bindService() */
-	private ArduinoADKServiceConnection usbServiceConnection = new ArduinoADKServiceConnection(this);
-	private ArduinoADKServiceConnection remoteControlServiceConnection = new ArduinoADKServiceConnection(this);
+	private ArduinoADKServiceConnection usbServiceConnection = new ArduinoADKServiceConnection(
+			this);
+	private ArduinoADKServiceConnection remoteControlServiceConnection = new ArduinoADKServiceConnection(
+			this);
 
 	private RemoteControlManager remoteControlManager;
 	private UsbAccessoryManager usbAccessoryManager;
+
+	protected Handler handler = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			switch (WhatAbout.values()[msg.what]) {
+			case SERVER_LOG:
+				logConsole("" + msg.obj);
+				break;
+			case SERVER_START:
+				handleServerStart();
+				break;
+			case SERVER_STOP:
+				handleServerStop();
+				break;
+			default:
+				break;
+			}
+		}
+	};
 
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.rcserver_main);
-		RemoteControlServerFragment fragment = (RemoteControlServerFragment) getFragmentManager().findFragmentById(R.id.remoteControlServerFragment);
-		switchRcServer = (Switch) fragment.getView().findViewById(R.id.switchRCServer);
-		initControllers();
+		RemoteControlServerFragment fragment = (RemoteControlServerFragment) getFragmentManager()
+				.findFragmentById(R.id.remoteControlServerFragment);
+		switchRCServer = (Switch) fragment.getView().findViewById(
+				R.id.switchRCServer);
+		initController();
 		createServices();
+	}
+
+	private void handleServerStart() {
+		logConsole("RC Server started...");
+		controller.displayIP();
+	}
+
+	private void handleServerStop() {
+		logConsole("RC Server stopped...");
 	}
 
 	@Override
@@ -60,7 +96,7 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 	@Override
 	public void onPause() {
 		super.onPause();
-		rcServerController.usbAccessoryDetached();
+		controller.usbAccessoryDetached();
 	}
 
 	@Override
@@ -83,13 +119,20 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 	private void doBindServices() {
 		Log.d(TAG, "bindServices");
 		// Bind from the service
-		boolean success = bindService(new Intent(this, UsbAccessoryService.class), usbServiceConnection, Context.BIND_AUTO_CREATE);
+		boolean success = bindService(new Intent(this,
+				UsbAccessoryService.class), usbServiceConnection,
+				Context.BIND_AUTO_CREATE);
 		if (!success) {
-			Log.e(TAG, "Failed to bind to " + UsbAccessoryService.class.getSimpleName());
+			Log.e(TAG,
+					"Failed to bind to "
+							+ UsbAccessoryService.class.getSimpleName());
 		}
-		success = bindService(new Intent(this, RemoteControlService.class), remoteControlServiceConnection, Context.BIND_AUTO_CREATE);
+		success = bindService(new Intent(this, RemoteControlService.class),
+				remoteControlServiceConnection, Context.BIND_AUTO_CREATE);
 		if (!success) {
-			Log.e(TAG, "Failed to bind to " + RemoteControlService.class.getSimpleName());
+			Log.e(TAG,
+					"Failed to bind to "
+							+ RemoteControlService.class.getSimpleName());
 		}
 	}
 
@@ -128,8 +171,10 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 		case R.id.switchRCServer:
 			if (buttonView.isChecked()) {
 				remoteControlManager.startServer();
+				// remoteControlManager.startClient();
 			} else {
-				remoteControlManager.stopServer();
+				remoteControlManager.stopClient();
+				// remoteControlManager.stopServer();
 			}
 			break;
 		}
@@ -151,13 +196,13 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 	}
 
 	public void logConsole(String message) {
-		rcServerController.logConsole(message);
+		controller.logConsole(message);
 	}
 
 	@Override
-	void initControllers() {
-		rcServerController = new RemoteControlController(this);
-		rcServerController.usbAccessoryAttached();
+	void initController() {
+		controller = new RemoteControlController(this);
+		controller.usbAccessoryAttached();
 	}
 
 	@Override
@@ -170,24 +215,32 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 
 		// switch between the different services
 		if (binder instanceof UsbAccessoryBinder) {
-			usbAccessoryManager = ((UsbAccessoryBinder) binder).getUsbAccessoryManager();
+			usbAccessoryManager = ((UsbAccessoryBinder) binder)
+					.getUsbAccessoryManager();
 			if (usbAccessoryManager.isOpened()) {
-				ArduinoManager arduinoHandlerThread = new ArduinoManager(usbAccessoryManager, null);
-				Thread thread = new Thread(null, arduinoHandlerThread, "arduinoHandlerThread");
+				ArduinoManager arduinoHandlerThread = new ArduinoManager(
+						usbAccessoryManager);
+				arduinoHandlerThread.setHandler(handler);
+				Thread thread = new Thread(null, arduinoHandlerThread,
+						"arduinoHandlerThread");
 				thread.start();
 			}
 		} else if (binder instanceof RemoteControlBinder) {
 			RemoteControlBinder b = (RemoteControlBinder) binder;
 			remoteControlManager = b.getRemoteControlManager();
-			this.getArduinoADKApplication().setRemoteControlManager(remoteControlManager);
+			this.getArduinoADKApplication().setRemoteControlManager(
+					remoteControlManager);
 			if (usbAccessoryManager != null)
-				remoteControlManager.setUsbAccessoryManager(this.usbAccessoryManager);
-			if (((ArduinoADK) getApplicationContext()).getSettings().isRCServerAutoStart()) {
+				remoteControlManager
+						.setUsbAccessoryManager(this.usbAccessoryManager);
+			if (getArduinoADKApplication().getSettings().isRCServerAutoStart()) {
 				remoteControlManager.startServer();
 			}
-			switchRcServer.setChecked(remoteControlManager.isServerStarted());
-			switchRcServer.setOnCheckedChangeListener(RemoteControlServerActivity.this);
-			b.getService().setActivity(this);
+			switchRCServer.setChecked(remoteControlManager.isServerStarted());
+			switchRCServer
+					.setOnCheckedChangeListener(RemoteControlServerActivity.this);
+			remoteControlManager.getRemoteControlServer().setHandler(
+					this.handler);
 		}
 	}
 

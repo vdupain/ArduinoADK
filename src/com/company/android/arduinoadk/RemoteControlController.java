@@ -3,7 +3,8 @@ package com.company.android.arduinoadk;
 import android.text.Html;
 import android.widget.TextView;
 
-public class RemoteControlController extends AbstractController<RemoteControlServerActivity> {
+public class RemoteControlController extends
+		AbstractController<RemoteControlServerActivity> {
 	private static final String TAG = RemoteControlController.class
 			.getSimpleName();
 

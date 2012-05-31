@@ -47,7 +47,7 @@ public class ArduinoActivity extends BaseActivity implements ServiceConnected {
 		Log.d(TAG, "onCreate");
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.arduino_main);
-		initControllers();
+		initController();
 		createServices();
 	}
 
@@ -140,7 +140,7 @@ public class ArduinoActivity extends BaseActivity implements ServiceConnected {
 	}
 
 	@Override
-	void initControllers() {
+	void initController() {
 		arduinoController = new ArduinoController(this);
 		arduinoController.usbAccessoryAttached();
 	}
@@ -164,7 +164,8 @@ public class ArduinoActivity extends BaseActivity implements ServiceConnected {
 					.getUsbAccessoryManager();
 			if (usbAccessoryManager.isOpened()) {
 				ArduinoManager arduinoHandlerThread = new ArduinoManager(
-						usbAccessoryManager, handler);
+						usbAccessoryManager);
+				arduinoHandlerThread.setHandler(handler);
 				Thread thread = new Thread(null, arduinoHandlerThread,
 						"arduinoHandlerThread");
 				thread.start();

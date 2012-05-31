@@ -12,8 +12,10 @@ import android.util.Log;
 
 import com.company.android.arduinoadk.WhatAbout;
 import com.company.android.arduinoadk.arduino.ArduinoManager;
+import com.company.android.arduinoadk.clientserver.ClientHandler;
+import com.company.android.arduinoadk.usb.UsbAccessoryManager;
 
-public class RemoteControlClientHandler implements Runnable {
+public class RemoteControlClientHandler implements ClientHandler {
 	private final String TAG = RemoteControlClientHandler.class.getSimpleName();
 
 	private ArduinoManager arduinoManager;
@@ -22,14 +24,12 @@ public class RemoteControlClientHandler implements Runnable {
 	private InputStream inputStream;
 	private OutputStream outputStream;
 	private byte[] buffer = new byte[4096];
-	private String request, response;
+	private String request;
 
-	private final Handler handler;
+	private Handler handler;
 
-	public RemoteControlClientHandler(Socket socket, Handler handler, ArduinoManager arduinoManager) {
-		this.socket = socket;
-		this.handler = handler;
-		this.arduinoManager = arduinoManager;
+	public RemoteControlClientHandler(UsbAccessoryManager usbAccessoryManager) {
+		this.arduinoManager = new ArduinoManager(usbAccessoryManager);
 	}
 
 	@Override
@@ -47,7 +47,6 @@ public class RemoteControlClientHandler implements Runnable {
 				}
 				if (len <= 0)
 					break;
-
 				request = new String(buffer, 0, len);
 				// Log.d(TAG, request);
 				if (request.startsWith("STICK"))
@@ -64,8 +63,7 @@ public class RemoteControlClientHandler implements Runnable {
 			}
 
 		} catch (IOException e) {
-			// FIXME
-			throw new RuntimeException(e);
+			Log.e(TAG, e.getMessage(), e);
 		} finally {
 			closeResources();
 		}
@@ -102,10 +100,13 @@ public class RemoteControlClientHandler implements Runnable {
 
 	private void commandStick() {
 		try {
-			double actualX = Double.parseDouble(request.substring(request.indexOf("x=") + 2, request.indexOf(":y=")));
-			double actualY = Double.parseDouble(request.substring(request.indexOf("y=") + 2, request.indexOf("\n")));
+			double actualX = Double.parseDouble(request.substring(
+					request.indexOf("x=") + 2, request.indexOf(":y=")));
+			double actualY = Double.parseDouble(request.substring(
+					request.indexOf("y=") + 2, request.indexOf("\n")));
 			this.arduinoManager.sendStickCommand(actualX, actualY);
-			log(this.getClientAddress().getHostAddress() + " - x=" + actualX + " ,y=" + actualY);
+			log(this.getClientAddress().getHostAddress() + " - x=" + actualX
+					+ " ,y=" + actualY);
 		} catch (NumberFormatException e) {
 			Log.e(TAG, e.getMessage(), e);
 		}
@@ -114,7 +115,6 @@ public class RemoteControlClientHandler implements Runnable {
 	private void commandHelp() {
 		writeContent("Available commands:\r\n");
 		writeContent("STICK:x=valueX:y=valueY\r\n");
-		this.arduinoManager.sendTestSequence();
 	}
 
 	private void commandTest() {
@@ -129,10 +129,10 @@ public class RemoteControlClientHandler implements Runnable {
 		commandHelp();
 	}
 
-	private void writeContent(String requestContent) {
-		Log.d(TAG, requestContent);
+	public void writeContent(String content) {
+		Log.d(TAG, content);
 		try {
-			outputStream.write(requestContent.getBytes(), 0, requestContent.length());
+			outputStream.write(content.getBytes(), 0, content.length());
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
 		}
@@ -156,8 +156,20 @@ public class RemoteControlClientHandler implements Runnable {
 	}
 
 	private void sendMessage(String text) {
-		Message message = Message.obtain(handler, WhatAbout.SERVER_LOG.ordinal(), text);
+		Message message = Message.obtain(handler,
+				WhatAbout.SERVER_LOG.ordinal(), text);
 		this.handler.sendMessage(message);
+	}
+
+	@Override
+	public void setHandler(Handler handler) {
+		this.handler = handler;
+		this.arduinoManager.setHandler(handler);
+	}
+
+	@Override
+	public void setSocket(Socket socket) {
+		this.socket = socket;
 	}
 
 }

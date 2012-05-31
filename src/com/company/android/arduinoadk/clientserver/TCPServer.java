@@ -1,4 +1,4 @@
-package com.company.android.arduinoadk.remotecontrol;
+package com.company.android.arduinoadk.clientserver;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -13,21 +13,16 @@ import android.os.Message;
 import android.util.Log;
 
 import com.company.android.arduinoadk.WhatAbout;
-import com.company.android.arduinoadk.arduino.ArduinoManager;
-import com.company.android.arduinoadk.usb.UsbAccessoryManager;
 
-public class RemoteControlServer {
-	private static final String TAG = RemoteControlServer.class.getSimpleName();
+public class TCPServer {
+	private static final String TAG = TCPServer.class.getSimpleName();
 
-	private AtomicBoolean stopServer = new AtomicBoolean(false);
+	private AtomicBoolean stop = new AtomicBoolean(false);
 	private Handler handler;
 	private int port;
-	private final UsbAccessoryManager usbAccessoryManager;
+	private ClientHandler clientHandler;
 
-	public RemoteControlServer(UsbAccessoryManager usbAccessoryManager,
-			Handler handler) {
-		this.usbAccessoryManager = usbAccessoryManager;
-		this.handler = handler;
+	public TCPServer() {
 	}
 
 	public void service(int port) {
@@ -42,18 +37,17 @@ public class RemoteControlServer {
 			ExecutorService pool = Executors.newSingleThreadExecutor();
 			this.handler.sendMessage(Message.obtain(handler,
 					WhatAbout.SERVER_START.ordinal()));
-			ArduinoManager arduinoManager = new ArduinoManager(
-					usbAccessoryManager, handler);
 			log("Accept client connection...");
-			while (!stopServer.get()) {
+			while (!stop.get()) {
 				try {
-					//Log.d(TAG, "Waits for " + serverSocket.getSoTimeout()
-					//		+ "ms an incoming request...");
+					Log.d(TAG, "Waiting for " + serverSocket.getSoTimeout()
+							+ "ms an incoming request...");
 					clientSocket = serverSocket.accept();
-					pool.execute(new RemoteControlClientHandler(clientSocket,
-							this.handler, arduinoManager));
+					clientHandler.setSocket(clientSocket);
+					clientHandler.setHandler(handler);
+					pool.execute(clientHandler);
 				} catch (SocketTimeoutException e) {
-					//Log.d(TAG, "SocketTimeoutException");
+					// Log.d(TAG, "SocketTimeoutException");
 				}
 			}
 		} catch (Exception e) {
@@ -63,14 +57,14 @@ public class RemoteControlServer {
 				try {
 					serverSocket.close();
 					serverSocket = null;
-					this.stopServer.set(false);
+					this.stop.set(false);
 					this.handler.sendMessage(Message.obtain(handler,
 							WhatAbout.SERVER_STOP.ordinal()));
 				} catch (IOException e) {
 					Log.e(TAG, e.getMessage(), e);
 				}
 			}
-			if (clientSocket !=null ) {
+			if (clientSocket != null) {
 				try {
 					clientSocket.close();
 					log("Client disconnected from Server");
@@ -82,7 +76,7 @@ public class RemoteControlServer {
 	}
 
 	public void stop() {
-		this.stopServer.set(true);
+		this.stop.set(true);
 	}
 
 	public int getPort() {
@@ -102,5 +96,16 @@ public class RemoteControlServer {
 		Message message = Message.obtain(handler,
 				WhatAbout.SERVER_LOG.ordinal(), text);
 		this.handler.sendMessage(message);
+	}
+
+	public void setHandler(Handler handler) {
+		this.handler = handler;
+		if (clientHandler != null) {
+			clientHandler.setHandler(handler);
+		}
+	}
+
+	public void setClientHandler(ClientHandler clientHandler) {
+		this.clientHandler = clientHandler;
 	}
 }

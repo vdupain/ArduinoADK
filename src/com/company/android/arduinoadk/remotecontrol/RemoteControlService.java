@@ -5,12 +5,8 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
-
-import com.company.android.arduinoadk.RemoteControlServerActivity;
-import com.company.android.arduinoadk.WhatAbout;
 
 /**
  * This service is only used to contain the RemoteControlServer running in the
@@ -26,28 +22,6 @@ public class RemoteControlService extends Service {
 	private final IBinder binder = new RemoteControlBinder();
 
 	private RemoteControlManager remoteControlManager;
-
-	private RemoteControlServerActivity arduinoADKActivity;
-
-	protected Handler handler = new Handler() {
-		@Override
-		public void handleMessage(Message msg) {
-			switch (WhatAbout.values()[msg.what]) {
-			case SERVER_LOG:
-				arduinoADKActivity.logConsole("" + msg.obj);
-				break;
-			case SERVER_START:
-				arduinoADKActivity.logConsole("RC Server started...");
-				arduinoADKActivity.rcServerController.displayIP();
-				break;
-			case SERVER_STOP:
-				arduinoADKActivity.logConsole("RC Server stopped...");
-				break;
-			default:
-				break;
-			}
-		}
-	};
 
 	/**
 	 * Class used for the client Binder. Because we know this service always
@@ -69,7 +43,8 @@ public class RemoteControlService extends Service {
 		Log.d(TAG, "onCreate");
 		if (remoteControlManager == null) {
 			remoteControlManager = new RemoteControlManager(
-					this.getApplicationContext(), handler);
+					this.getApplicationContext());
+			remoteControlManager.onCreate();
 		}
 	}
 
@@ -78,6 +53,7 @@ public class RemoteControlService extends Service {
 		// The service is no longer used and is being destroyed
 		Log.d(TAG, "onDestroy");
 		remoteControlManager.stopServer();
+		remoteControlManager.stopClient();
 		remoteControlManager = null;
 	}
 
@@ -107,10 +83,6 @@ public class RemoteControlService extends Service {
 	public boolean onUnbind(Intent intent) {
 		Log.d(TAG, "onUnbind");
 		return true;
-	}
-
-	public void setActivity(RemoteControlServerActivity arduinoADKActivity) {
-		this.arduinoADKActivity = arduinoADKActivity;
 	}
 
 }
