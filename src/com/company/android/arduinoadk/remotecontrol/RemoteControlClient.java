@@ -26,12 +26,23 @@ public class RemoteControlClient implements Runnable {
 	}
 
 	public RemoteControlClient(String host, int port) {
-		/*
+public class RemoteControlClient implements Runnable {
+
+	private final String host;
+	private final int port;
+
+	private Socket socket;
+	private InputStream inputStream;
+	private OutputStream outputStream;
+	private Thread thread;
+
+	public RemoteControlClient(String host, int port) {
 		this.host = host;
 		this.port = port;
 
 		try {
 			socket = new Socket(this.host, this.port);
+			socket = new Socket(host, port);
 			inputStream = socket.getInputStream();
 			outputStream = socket.getOutputStream();
 			thread = new Thread(this);
@@ -137,7 +148,5 @@ public class RemoteControlClient implements Runnable {
 	}
 
 	public void connect(String host2, int serverPort) {
-		// TODO Auto-generated method stub
-
 	}
 }
