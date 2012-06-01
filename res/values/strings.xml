@@ -13,6 +13,13 @@
     <string name="rcclient">RC Client</string>
     <string name="server">Server</string>
     <string name="ip_address">IP address</string>
+
+    <!-- Notification -->
+    <string name="notif_service_started">ArduinoADK Service started</string>
+    <string name="notif_service_stopped">ArduinoADK Service stopped</string>
+    <string name="notif_service_label">ArduinoADK</string>
+    
+    <!-- Menu -->
     <string name="menu_settings">Settings</string>
     <string name="menu_arduino">Arduino</string>
     <string name="menu_rcserver">RC Server</string>
@@ -20,7 +27,23 @@
     <string name="menu_test">Testing</string>
     <string name="menu_abouthelp">About &amp; Help</string>
     <string name="menu_quit">Quit</string>
-    <string name="service_started">ArduinoADK Service started</string>
-    <string name="service_stopped">ArduinoADK Service stopped</string>
-    <string name="service_label">ArduinoADK</string>
+
+    <!-- Preferences -->
+    <string name="title_application_pref_header">Application</string>
+    <string name="summary_application_pref_header">Application settings.</string>
+    <string name="title_remotecontrol_pref_header">Remote Control</string>
+    <string name="summary_remotecontrol_pref_header">Remote Control settings.</string>
+    <string name="title_arduino_pref_header">Arduino</string>
+    <string name="summary_arduino_pref_header">Arduino settings.</string>
+    <string name="title_remotecontrol_server_pref">Server</string>
+    <string name="title_remotecontrol_client_pref">Client</string>
+    <string name="title_auto_start_rcserver">Auto Start</string>
+    <string name="summary_auto_start_rcserver">Start up server automaticaly when application starts</string>
+    <string name="title_tcp_port">TCP Port</string>
+    <string name="summary_tcp_port">TCP Port number to bind locally</string>
+    <string name="title_rc_server">Hostname</string>
+    <string name="summary_rc_server">Hostname or IP address of the RC Server</string>
+    <string name="title_prevent_going_to_sleep">Prevent going to sleep</string>
+    <string name="summary_prevent_going_to_sleep">Most phones put processor to sleep mode when screen off</string>
+
 </resources>

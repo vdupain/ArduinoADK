@@ -1,11 +1,11 @@
 package com.company.android.arduinoadk.remotecontrol;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Messenger;
 import android.util.Log;
 
 /**
@@ -68,6 +68,11 @@ public class RemoteControlService extends Service {
 	public IBinder onBind(Intent intent) {
 		// A client is binding to the service with bindService()
 		Log.d(TAG, "onBind");
+		Bundle extras = intent.getExtras();
+		// Get messager from the Activity
+		if (extras != null) {
+			remoteControlManager.setMessenger(((Messenger) extras.get("MESSENGER")));
+		}
 		return this.binder;
 	}
 

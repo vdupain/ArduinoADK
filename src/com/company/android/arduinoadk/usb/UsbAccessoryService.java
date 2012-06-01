@@ -23,7 +23,7 @@ public class UsbAccessoryService extends Service {
 
 	// Unique Identification Number for the Notification.
 	// We use it on Notification start, and to cancel it.
-	private int NOTIFICATION = R.string.service_started;
+	private int NOTIFICATION = R.string.notif_service_started;
 
 	// Binder given to clients
 	private final IBinder binder = new UsbAccessoryBinder();
@@ -106,13 +106,13 @@ public class UsbAccessoryService extends Service {
 	 * Show a notification while this service is running.
 	 */
 	private void showNotification() {
-		CharSequence text = getText(R.string.service_started);
+		CharSequence text = getText(R.string.notif_service_started);
 		// The PendingIntent to launch our activity if the user selects this
 		// notification
 		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
 		// Set the info for the views that show in the notification panel.
 		Notification notification = new Notification.Builder(this).setTicker(text).setWhen(System.currentTimeMillis()).setSmallIcon(R.drawable.ic_launcher)
-				.setContentText(text).setContentTitle(getText(R.string.service_label)).setContentIntent(contentIntent).getNotification();
+				.setContentText(text).setContentTitle(getText(R.string.notif_service_label)).setContentIntent(contentIntent).getNotification();
 		// Send the notification.
 		// We use a string id because it is a unique number. We use it later to
 		// cancel.

@@ -36,10 +36,10 @@ public class RemoteControlClientHandler implements ClientHandler {
 	public void run() {
 		int len = 0;
 		try {
-			log("Connection from " + getClientAddress().getHostAddress());
+			log("Connection from " + this.socket.getInetAddress().getHostAddress());
 			inputStream = socket.getInputStream();
 			outputStream = socket.getOutputStream();
-			while (true) {
+			while (socket.isConnected()) {
 				try {
 					len = inputStream.read(buffer, 0, buffer.length);
 				} catch (IOException e) {
@@ -48,13 +48,11 @@ public class RemoteControlClientHandler implements ClientHandler {
 				if (len <= 0)
 					break;
 				request = new String(buffer, 0, len);
-				// Log.d(TAG, request);
+				//Log.d(TAG, request);
 				if (request.startsWith("STICK"))
 					commandStick();
 				else if (request.startsWith("HELP"))
 					commandHelp();
-				else if (request.startsWith("TEST"))
-					commandTest();
 				else if (request.startsWith("QUIT")) {
 					commandQuit();
 					break;
@@ -105,7 +103,7 @@ public class RemoteControlClientHandler implements ClientHandler {
 			double actualY = Double.parseDouble(request.substring(
 					request.indexOf("y=") + 2, request.indexOf("\n")));
 			this.arduinoManager.sendStickCommand(actualX, actualY);
-			log(this.getClientAddress().getHostAddress() + " - x=" + actualX
+			log(this.socket.getInetAddress().getHostAddress() + " - x=" + actualX
 					+ " ,y=" + actualY);
 		} catch (NumberFormatException e) {
 			Log.e(TAG, e.getMessage(), e);
@@ -117,11 +115,8 @@ public class RemoteControlClientHandler implements ClientHandler {
 		writeContent("STICK:x=valueX:y=valueY\r\n");
 	}
 
-	private void commandTest() {
-	}
-
 	private void commandQuit() {
-		writeContent("Command Quit\r\n");
+		writeContent("Command Quit\r\n");		
 	}
 
 	private void commandUnknown() {
@@ -136,14 +131,6 @@ public class RemoteControlClientHandler implements ClientHandler {
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
 		}
-	}
-
-	/**
-	 * 
-	 * @return Returns client address
-	 */
-	private InetAddress getClientAddress() {
-		return this.socket.getInetAddress();
 	}
 
 	/**

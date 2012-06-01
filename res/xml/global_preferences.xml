@@ -4,7 +4,7 @@
     <CheckBoxPreference
         android:defaultValue="true"
         android:key="prevent_going_to_sleep"
-        android:summary="Most phones put processor to sleep mode when screen off"
-        android:title="Prevent going to sleep" />
+        android:summary="@string/summary_prevent_going_to_sleep"
+        android:title="@string/title_prevent_going_to_sleep" />
 
 </PreferenceScreen>

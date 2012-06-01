@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.Messenger;
 import android.util.Log;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
@@ -113,11 +114,19 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 	private void doBindServices() {
 		Log.d(TAG, "bindServices");
 		// Bind from the service
-		boolean success = bindService(new Intent(this, UsbAccessoryService.class), usbServiceConnection, Context.BIND_AUTO_CREATE);
+		Intent intent = new Intent(this, UsbAccessoryService.class);
+		// Create a new Messenger for the communication back
+		// From the Service to the Activity
+		intent.putExtra("MESSENGER", new Messenger(handler));
+		boolean success = bindService(intent, usbServiceConnection, Context.BIND_AUTO_CREATE);
 		if (!success) {
 			Log.e(TAG, "Failed to bind to " + UsbAccessoryService.class.getSimpleName());
 		}
-		success = bindService(new Intent(this, RemoteControlService.class), remoteControlServiceConnection, Context.BIND_AUTO_CREATE);
+		intent = new Intent(this, RemoteControlService.class);
+		// Create a new Messenger for the communication back
+		// From the Service to the Activity
+		intent.putExtra("MESSENGER", new Messenger(handler));
+		success = bindService(intent, remoteControlServiceConnection, Context.BIND_AUTO_CREATE);
 		if (!success) {
 			Log.e(TAG, "Failed to bind to " + RemoteControlService.class.getSimpleName());
 		}
@@ -218,7 +227,7 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 			}
 			switchRCServer.setChecked(remoteControlManager.isServerStarted());
 			switchRCServer.setOnCheckedChangeListener(RemoteControlServerActivity.this);
-			remoteControlManager.getRemoteControlServer().setHandler(this.handler);
+			remoteControlManager.setHandler(this.handler);
 		}
 	}
 

@@ -3,18 +3,18 @@
 
     <header
         android:fragment="com.company.android.arduinoadk.SettingsActivity$GlobalSettingsPreferenceFragment"
-        android:summary="Application settings."
-        android:title="Application" >
+        android:summary="@string/summary_application_pref_header"
+        android:title="@string/title_application_pref_header" >
     </header>
     <header
         android:fragment="com.company.android.arduinoadk.SettingsActivity$RemoteControlSettingsPreferenceFragment"
-        android:summary="Remote Control settings."
-        android:title="Remote Control" >
+        android:summary="@string/summary_remotecontrol_pref_header"
+        android:title="@string/title_remotecontrol_pref_header" >
     </header>
     <header
         android:fragment="com.company.android.arduinoadk.SettingsActivity$ArduinoSettingsPreferenceFragment"
-        android:summary="Arduino settings."
-        android:title="Arduino" >
+        android:summary="@string/summary_arduino_pref_header"
+        android:title="@string/title_arduino_pref_header" >
     </header>
 
 </preference-headers>

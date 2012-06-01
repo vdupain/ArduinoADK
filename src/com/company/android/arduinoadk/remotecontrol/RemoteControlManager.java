@@ -2,7 +2,6 @@ package com.company.android.arduinoadk.remotecontrol;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import android.content.Context;
 import android.hardware.Sensor;
@@ -13,9 +12,14 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Messenger;
 import android.util.Log;
+import android.view.Display;
+import android.view.Surface;
+import android.view.WindowManager;
 
 import com.company.android.arduinoadk.ArduinoADK;
+import com.company.android.arduinoadk.MathHelper;
 import com.company.android.arduinoadk.WhatAbout;
 import com.company.android.arduinoadk.clientserver.TCPClient;
 import com.company.android.arduinoadk.clientserver.TCPServer;
@@ -30,66 +34,144 @@ public class RemoteControlManager implements SensorEventListener {
 	private final Context context;
 	private int serverPort;
 	private String host;
-	private Thread rcServerWorkerThread;
-	private Thread rcClientWorkerThread;
+	
+	private Display display;
 	private SensorManager sensorManager;
 	private Sensor accelerometer;
 
-	public static final int SERVER_STATE_NONE = 0; // we're doing nothing
-	public static final int SERVER_STATE_LISTEN = 1; // now listening for
-														// incoming connections
-	private AtomicInteger serverState = new AtomicInteger(SERVER_STATE_NONE);
-
 	private Handler handler;
+	private Messenger messenger;
 
 	public RemoteControlManager(Context context) {
 		this.context = context;
 		serverPort = ((ArduinoADK) RemoteControlManager.this.context.getApplicationContext()).getSettings().getRCServerTCPPort();
-		this.remoteControlServer = new TCPServer(serverPort);
-		this.remoteControlServer.setClientHandler(new RemoteControlClientHandler(this.usbAccessoryManager));
-
 		host = ((ArduinoADK) RemoteControlManager.this.context.getApplicationContext()).getSettings().getRCServer();
-		this.remoteControlClient = new TCPClient(host, serverPort);
 	}
 
 	public void startServer() {
-		if (rcServerWorkerThread == null) {
-			rcServerWorkerThread = new Thread(remoteControlServer, remoteControlServer.getClass().getSimpleName() + "Thead");
-			rcServerWorkerThread.start();
-		}
+		this.remoteControlServer = new TCPServer(serverPort);
+		this.remoteControlServer.setClientHandler(new RemoteControlClientHandler(this.usbAccessoryManager));
+		this.remoteControlServer.setHandler(this.handler);
+		this.remoteControlServer.start();
 	}
 
 	public void stopServer() {
-		if (rcServerWorkerThread != null) {
-			remoteControlServer.cancel();
-			rcServerWorkerThread.interrupt();
-			rcServerWorkerThread = null;
+		if (remoteControlServer == null)
+			return;
+		this.remoteControlServer.stopServer();
+		try {
+			remoteControlServer.join();
+		} catch (InterruptedException e) {
+			Log.e(TAG, e.getMessage(), e);
 		}
+		remoteControlServer = null;
 	}
 
 	public boolean isServerStarted() {
-		return rcServerWorkerThread != null;
+		return remoteControlServer != null && remoteControlServer.isListen();
 	}
 
 	public void startClient() {
-		if (rcClientWorkerThread == null) {
-			rcClientWorkerThread = new Thread(remoteControlClient, remoteControlClient.getClass().getSimpleName() + "Thead");
-			rcClientWorkerThread.start();
-			sensorManager.registerListener(RemoteControlManager.this, accelerometer, SensorManager.SENSOR_DELAY_UI);
-		}
+		this.remoteControlClient = new TCPClient(host, serverPort);
+		this.remoteControlClient.setHandler(this.handler);
+		this.remoteControlClient.start();
+		sensorManager.registerListener(RemoteControlManager.this, accelerometer, SensorManager.SENSOR_DELAY_UI);
 	}
 
 	public boolean isClientStarted() {
-		return rcClientWorkerThread != null;
+		return remoteControlClient != null && remoteControlClient.isConnected();
 	}
 
 	public void stopClient() {
-		if (rcClientWorkerThread != null) {
-			remoteControlClient.cancel();
-			rcClientWorkerThread.interrupt();
-			sensorManager.unregisterListener(this);
-			rcClientWorkerThread = null;
+		if (remoteControlClient == null)
+			return;
+		sensorManager.unregisterListener(this);
+		remoteControlClient.cancel();
+		try {
+			remoteControlClient.join();
+		} catch (InterruptedException e) {
+			Log.e(TAG, e.getMessage(), e);
 		}
+		remoteControlClient = null;
+	}
+
+	public TCPServer getRemoteControlServer() {
+		return remoteControlServer;
+	}
+
+	public TCPClient getRemoteControlClient() {
+		return remoteControlClient;
+	}
+
+	public void onCreate() {
+		// Get an instance of the SensorManager
+		sensorManager = (SensorManager) this.context.getSystemService(Context.SENSOR_SERVICE);
+		accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		// and instantiate the display to know the device orientation
+		display = ((WindowManager) this.context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+		Log.i(TAG, "accelerometer maximum range =" + accelerometer.getMaximumRange());
+		Log.i(TAG, "accelerometer name =" + accelerometer.getName());
+		Log.i(TAG, "accelerometer vendor =" + accelerometer.getVendor());
+		Log.i(TAG, "accelerometer version =" + accelerometer.getVersion());
+		Log.i(TAG, "accelerometer resolution =" + accelerometer.getResolution());
+		Log.i(TAG, "accelerometer power =" + accelerometer.getPower());
+		Log.i(TAG, "accelerometer min delay =" + accelerometer.getMinDelay());
+		Log.i(TAG, "accelerometer type =" + accelerometer.getType());
+	}
+
+	public void setPosition(float x, float y) {
+		float valueX = MathHelper.constrain(x, -10, 10);
+		float valueY = MathHelper.constrain(y, -10, 10);
+		valueX = MathHelper.map(valueX, -10, 10, 0, 180);
+		valueY = MathHelper.map(valueY, -10, 10, 0, 180);
+		if (remoteControlClient.isConnected()) {
+			remoteControlClient.writeContent("STICK:x=" + valueX + ":y=" + valueY + "\n");
+		}
+		Message m = Message.obtain(handler, WhatAbout.RCCLIENT_POSITION.ordinal(), new PositionMessage(valueX, valueY));
+		handler.sendMessage(m);
+	}
+
+	@Override
+	public void onSensorChanged(SensorEvent event) {
+		if (event.sensor.getType() != Sensor.TYPE_ACCELEROMETER)
+			return;
+		float x = 0, y = 0;
+		// Depending on the device orientation get the x,y value of the acceleration
+		switch (display.getRotation()) {
+		case Surface.ROTATION_0:
+			x = event.values[0];
+			y = event.values[1];
+			break;
+		case Surface.ROTATION_90:
+			x = -event.values[1];
+			y = event.values[0];
+			break;
+		case Surface.ROTATION_180:
+			x = -event.values[0];
+			y = -event.values[1];
+			break;
+		case Surface.ROTATION_270:
+			x = event.values[1];
+			y = -event.values[0];
+			break;
+		}
+		setPosition(x, y);
+	}
+
+	@Override
+	public void onAccuracyChanged(Sensor sensor, int accuracy) {
+	}
+
+	public void setHandler(Handler handler) {
+		this.handler = handler;
+		if (remoteControlServer != null)
+			remoteControlServer.setHandler(this.handler);
+		if (remoteControlClient != null)
+			remoteControlClient.setHandler(handler);
+	}
+
+	public void setMessenger(Messenger messenger) {
+		this.messenger = messenger;
 	}
 
 	public void setUsbAccessoryManager(UsbAccessoryManager usbAccessoryManager) {
@@ -120,56 +202,6 @@ public class RemoteControlManager implements SensorEventListener {
 			s.append("Wifi should be enabled !");
 		}
 		return s.toString();
-	}
-
-	public TCPServer getRemoteControlServer() {
-		return remoteControlServer;
-	}
-
-	public TCPClient getRemoteControlClient() {
-		return remoteControlClient;
-	}
-
-	public void onCreate() {
-		// Get an instance of the SensorManager
-		sensorManager = (SensorManager) this.context.getSystemService(this.context.SENSOR_SERVICE);
-		accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-	}
-
-	public void setPosition(float x, float y) {
-		if (rcClientWorkerThread != null && rcClientWorkerThread.isAlive()) {
-			remoteControlClient.writeContent("STICK:x=" + x + ":y=" + y + "\n");
-		}
-		Message m = Message.obtain(handler, WhatAbout.RCCLIENT_POSITION.ordinal());
-		m.obj = new PositionMessage(x, y);
-		handler.sendMessage(m);
-	}
-
-	@Override
-	public void onSensorChanged(SensorEvent event) {
-		if (event.sensor.getType() != Sensor.TYPE_ACCELEROMETER)
-			return;
-		float x = 0, y = 0;
-		x = event.values[0];
-		y = event.values[1];
-		setPosition(x, y);
-	}
-
-	@Override
-	public void onAccuracyChanged(Sensor sensor, int accuracy) {
-		// TODO Auto-generated method stub
-	}
-
-	public void setHandler(Handler handler) {
-		this.handler = handler;
-	}
-
-	public void setServerState(int serverState) {
-		this.serverState.set(serverState);
-	}
-
-	public int getServerState() {
-		return this.serverState.get();
 	}
 
 }

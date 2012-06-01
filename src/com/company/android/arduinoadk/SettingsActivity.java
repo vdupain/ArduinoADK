@@ -5,6 +5,7 @@ import java.util.List;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
+import android.preference.PreferenceManager;
 
 public class SettingsActivity extends PreferenceActivity {
 
@@ -18,6 +19,7 @@ public class SettingsActivity extends PreferenceActivity {
 	 */
 	@Override
 	public void onBuildHeaders(List<Header> target) {
+		PreferenceManager.setDefaultValues(getApplicationContext(), R.xml.preference_headers, false);
 		loadHeadersFromResource(R.xml.preference_headers, target);
 	}
 
@@ -28,7 +30,7 @@ public class SettingsActivity extends PreferenceActivity {
 		@Override
 		public void onCreate(Bundle savedInstanceState) {
 			super.onCreate(savedInstanceState);
-			// Load the preferences from an XML resource
+			PreferenceManager.setDefaultValues(getActivity(), R.xml.global_preferences, false);
 			addPreferencesFromResource(R.xml.global_preferences);
 		}
 	}
@@ -40,7 +42,7 @@ public class SettingsActivity extends PreferenceActivity {
 		@Override
 		public void onCreate(Bundle savedInstanceState) {
 			super.onCreate(savedInstanceState);
-			// Load the preferences from an XML resource
+			PreferenceManager.setDefaultValues(getActivity(), R.xml.remotecontrol_preferences, false);
 			addPreferencesFromResource(R.xml.remotecontrol_preferences);
 		}
 	}
@@ -52,7 +54,7 @@ public class SettingsActivity extends PreferenceActivity {
 		@Override
 		public void onCreate(Bundle savedInstanceState) {
 			super.onCreate(savedInstanceState);
-			// Load the preferences from an XML resource
+			PreferenceManager.setDefaultValues(getActivity(), R.xml.arduino_preferences, false);
 			addPreferencesFromResource(R.xml.arduino_preferences);
 		}
 	}

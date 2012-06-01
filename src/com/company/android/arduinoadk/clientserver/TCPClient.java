@@ -13,18 +13,15 @@ import android.util.Log;
 
 import com.company.android.arduinoadk.WhatAbout;
 
-public class TCPClient implements Runnable {
+public class TCPClient extends Thread {
 	private final String TAG = TCPClient.class.getSimpleName();
 
-	private boolean stop = true;
 	private Socket socket = null;
 	private InputStream inputStream;
 	private OutputStream outputStream;
 	private byte[] buffer = new byte[4096];
 	private Handler handler;
-
 	private final String host;
-
 	private final int port;
 
 	public TCPClient(String host, int port) {
@@ -53,7 +50,7 @@ public class TCPClient implements Runnable {
 	public void doWhile() {
 		int len = 0;
 		try {
-			while (!stop) {
+			while (socket.isConnected()) {
 				try {
 					len = inputStream.read(buffer, 0, buffer.length);
 				} catch (IOException e) {
@@ -68,17 +65,12 @@ public class TCPClient implements Runnable {
 			}
 		} finally {
 			closeResources();
-			stop = true;
 		}
 
 	}
 
 	private void handleRequest(String req) {
 		Log.d(TAG, req);
-	}
-
-	public void cancel() {
-		this.stop = true;
 	}
 
 	public void writeContent(String content) {
@@ -118,10 +110,8 @@ public class TCPClient implements Runnable {
 			try {
 				socket.close();
 				socket = null;
-				// log("Client disconnected");
 			} catch (IOException e) {
 				Log.e(TAG, e.getMessage(), e);
-				// log(e.getMessage());
 			}
 		}
 	}
@@ -132,8 +122,21 @@ public class TCPClient implements Runnable {
 
 	@Override
 	public void run() {
-		this.connect(host, port);
-		doWhile();
+		if (this.connect(host, port))
+			doWhile();
+	}
+
+	public void cancel() {
+		if (socket != null)
+			try {
+				socket.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+	}
+
+	public boolean isConnected() {
+		return socket != null && socket.isConnected();
 	}
 
 }

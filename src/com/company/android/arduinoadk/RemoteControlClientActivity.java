@@ -48,7 +48,6 @@ public class RemoteControlClientActivity extends BaseActivity implements OnCheck
 		}
 		switchRCClient.setOnCheckedChangeListener(this);
 		this.getArduinoADKApplication().getRemoteControlManager().setHandler(handler);
-		this.getArduinoADKApplication().getRemoteControlManager().getRemoteControlClient().setHandler(handler);
 	}
 
 	private void handlePositionMessage(PositionMessage positionMessage) {

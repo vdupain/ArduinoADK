@@ -1,26 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
 
-    <PreferenceCategory android:title="Server" >
+    <PreferenceCategory android:title="@string/title_remotecontrol_server_pref" >
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="auto_start_rcserver"
-            android:summary="Start up server automaticaly when application starts"
-            android:title="Auto Start" />
-
+            android:summary="@string/summary_auto_start_rcserver"
+            android:title="@string/title_auto_start_rcserver" />
         <EditTextPreference
             android:defaultValue="12345"
             android:dialogMessage="Port number, in range 1024-65536"
             android:key="tcp_port"
-            android:summary="TCP Port number to bind locally"
-            android:title="TCP Port" />
+            android:summary="@string/summary_tcp_port"
+            android:title="@string/title_tcp_port" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="Client" >
+    <PreferenceCategory android:title="@string/title_remotecontrol_client_pref" >
         <EditTextPreference
             android:defaultValue="localhost"
             android:key="rc_server"
-            android:summary="Hostname or IP address of the RC Server"
-            android:title="Hostname" />
+            android:summary="@string/summary_rc_server"
+            android:title="@string/title_rc_server" />
     </PreferenceCategory>
 
 </PreferenceScreen>
