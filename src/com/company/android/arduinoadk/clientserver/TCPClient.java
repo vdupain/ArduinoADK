@@ -13,29 +13,46 @@ import android.util.Log;
 
 import com.company.android.arduinoadk.WhatAbout;
 
-public class TCPClient {
+public class TCPClient implements Runnable {
 	private final String TAG = TCPClient.class.getSimpleName();
 
 	private boolean stop = true;
-	private boolean isRunning = false;
 	private Socket socket = null;
 	private InputStream inputStream;
 	private OutputStream outputStream;
 	private byte[] buffer = new byte[4096];
-	private String request;
 	private Handler handler;
 
-	public TCPClient() {
+	private final String host;
+
+	private final int port;
+
+	public TCPClient(String host, int port) {
+		this.host = host;
+		this.port = port;
 	}
 
-	public void connect(String host, int port) {
-		isRunning = true;
-		stop = false;
-		int len = 0;
+	public boolean connect(String host, int port) {
 		try {
 			socket = new Socket(host, port);
 			inputStream = socket.getInputStream();
 			outputStream = socket.getOutputStream();
+			return true;
+		} catch (UnknownHostException e) {
+			Log.w(TAG, e.getMessage(), e);
+			this.handler.sendMessage(Message.obtain(handler, WhatAbout.SERVER_CONNECTION_FAILURE.ordinal(), e));
+		} catch (ConnectException e) {
+			Log.w(TAG, e.getMessage(), e);
+			this.handler.sendMessage(Message.obtain(handler, WhatAbout.SERVER_CONNECTION_FAILURE.ordinal(), e));
+		} catch (IOException e) {
+			Log.e(TAG, e.getMessage(), e);
+		}
+		return false;
+	}
+
+	public void doWhile() {
+		int len = 0;
+		try {
 			while (!stop) {
 				try {
 					len = inputStream.read(buffer, 0, buffer.length);
@@ -44,18 +61,11 @@ public class TCPClient {
 				}
 				if (len <= 0)
 					break;
-				request = new String(buffer, 0, len);
+				String request = new String(buffer, 0, len);
+				// Send the obtained bytes to the UI Activity
+				handler.obtainMessage(WhatAbout.MESSAGE_READ.ordinal(), len, -1, buffer).sendToTarget();
 				handleRequest(request);
 			}
-		} catch (UnknownHostException e) {
-			Log.w(TAG, e.getMessage(), e);
-			this.handler.sendMessage(Message.obtain(handler, WhatAbout.SERVER_CONNECTION_FAILURE.ordinal(), e));
-		} catch (ConnectException e) {
-			Log.w(TAG, e.getMessage(), e);
-			this.handler.sendMessage(Message.obtain(handler, WhatAbout.SERVER_CONNECTION_FAILURE.ordinal(), e));
-
-		} catch (IOException e) {
-			Log.e(TAG, e.getMessage(), e);
 		} finally {
 			closeResources();
 			stop = true;
@@ -67,14 +77,21 @@ public class TCPClient {
 		Log.d(TAG, req);
 	}
 
-	public void stop() {
+	public void cancel() {
 		this.stop = true;
 	}
 
 	public void writeContent(String content) {
-		Log.d(TAG, content);
+		this.write(content.getBytes());
+	}
+
+	private void write(byte[] buffer) {
 		try {
-			outputStream.write(content.getBytes(), 0, content.length());
+			if (outputStream != null) {
+				outputStream.write(buffer, 0, buffer.length);
+				// Share the sent message back to the UI Activity
+				handler.obtainMessage(WhatAbout.MESSAGE_WRITE.ordinal(), -1, -1, buffer).sendToTarget();
+			}
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
 		}
@@ -113,8 +130,10 @@ public class TCPClient {
 		this.handler = handler;
 	}
 
-	public boolean isRunning() {
-		return !stop;
+	@Override
+	public void run() {
+		this.connect(host, port);
+		doWhile();
 	}
 
 }

@@ -2,6 +2,7 @@ package com.company.android.arduinoadk.remotecontrol;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import android.content.Context;
 import android.hardware.Sensor;
@@ -34,53 +35,35 @@ public class RemoteControlManager implements SensorEventListener {
 	private SensorManager sensorManager;
 	private Sensor accelerometer;
 
+	public static final int SERVER_STATE_NONE = 0; // we're doing nothing
+	public static final int SERVER_STATE_LISTEN = 1; // now listening for
+														// incoming connections
+	private AtomicInteger serverState = new AtomicInteger(SERVER_STATE_NONE);
+
 	private Handler handler;
-
-	class RCServerRunnable implements Runnable {
-		@Override
-		public void run() {
-			serverPort = ((ArduinoADK) RemoteControlManager.this.context.getApplicationContext()).getSettings().getRCServerTCPPort();
-			remoteControlServer.service(serverPort);
-		}
-	}
-
-	class RCClientRunnable implements Runnable {
-
-		@Override
-		public void run() {
-			/*
-			 * It is not necessary to get accelerometer events at a very high
-			 * rate, by using a slower rate (SENSOR_DELAY_UI), we get an
-			 * automatic low-pass filter, which "extracts" the gravity component
-			 * of the acceleration. As an added benefit, we use less power and
-			 * CPU resources.
-			 */
-			sensorManager.registerListener(RemoteControlManager.this, accelerometer, SensorManager.SENSOR_DELAY_UI);
-			serverPort = ((ArduinoADK) RemoteControlManager.this.context.getApplicationContext()).getSettings().getRCServerTCPPort();
-			host = ((ArduinoADK) RemoteControlManager.this.context.getApplicationContext()).getSettings().getRCServer();
-			remoteControlClient.connect(host, serverPort);
-		}
-
-	}
 
 	public RemoteControlManager(Context context) {
 		this.context = context;
-		this.remoteControlServer = new TCPServer();
+		serverPort = ((ArduinoADK) RemoteControlManager.this.context.getApplicationContext()).getSettings().getRCServerTCPPort();
+		this.remoteControlServer = new TCPServer(serverPort);
 		this.remoteControlServer.setClientHandler(new RemoteControlClientHandler(this.usbAccessoryManager));
-		this.remoteControlClient = new TCPClient();
+
+		host = ((ArduinoADK) RemoteControlManager.this.context.getApplicationContext()).getSettings().getRCServer();
+		this.remoteControlClient = new TCPClient(host, serverPort);
 	}
 
 	public void startServer() {
 		if (rcServerWorkerThread == null) {
-			rcServerWorkerThread = new Thread(new RCServerRunnable(), RCServerRunnable.class.getSimpleName() + "Thead");
+			rcServerWorkerThread = new Thread(remoteControlServer, remoteControlServer.getClass().getSimpleName() + "Thead");
 			rcServerWorkerThread.start();
 		}
 	}
 
-	public void startClient() {
-		if (rcClientWorkerThread == null) {
-			rcClientWorkerThread = new Thread(new RCClientRunnable(), RCClientRunnable.class.getSimpleName() + "Thead");
-			rcClientWorkerThread.start();
+	public void stopServer() {
+		if (rcServerWorkerThread != null) {
+			remoteControlServer.cancel();
+			rcServerWorkerThread.interrupt();
+			rcServerWorkerThread = null;
 		}
 	}
 
@@ -88,23 +71,23 @@ public class RemoteControlManager implements SensorEventListener {
 		return rcServerWorkerThread != null;
 	}
 
+	public void startClient() {
+		if (rcClientWorkerThread == null) {
+			rcClientWorkerThread = new Thread(remoteControlClient, remoteControlClient.getClass().getSimpleName() + "Thead");
+			rcClientWorkerThread.start();
+			sensorManager.registerListener(RemoteControlManager.this, accelerometer, SensorManager.SENSOR_DELAY_UI);
+		}
+	}
+
 	public boolean isClientStarted() {
 		return rcClientWorkerThread != null;
 	}
 
-	public void stopServer() {
-		if (rcServerWorkerThread != null) {
-			remoteControlServer.stop();
-			rcServerWorkerThread.interrupt();
-			rcServerWorkerThread = null;
-		}
-	}
-
 	public void stopClient() {
 		if (rcClientWorkerThread != null) {
-			remoteControlClient.stop();
-			sensorManager.unregisterListener(this);
+			remoteControlClient.cancel();
 			rcClientWorkerThread.interrupt();
+			sensorManager.unregisterListener(this);
 			rcClientWorkerThread = null;
 		}
 	}
@@ -154,7 +137,7 @@ public class RemoteControlManager implements SensorEventListener {
 	}
 
 	public void setPosition(float x, float y) {
-		if (!remoteControlClient.isRunning()) {
+		if (rcClientWorkerThread != null && rcClientWorkerThread.isAlive()) {
 			remoteControlClient.writeContent("STICK:x=" + x + ":y=" + y + "\n");
 		}
 		Message m = Message.obtain(handler, WhatAbout.RCCLIENT_POSITION.ordinal());
@@ -180,4 +163,13 @@ public class RemoteControlManager implements SensorEventListener {
 	public void setHandler(Handler handler) {
 		this.handler = handler;
 	}
+
+	public void setServerState(int serverState) {
+		this.serverState.set(serverState);
+	}
+
+	public int getServerState() {
+		return this.serverState.get();
+	}
+
 }

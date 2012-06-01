@@ -1,5 +1,7 @@
 package com.company.android.arduinoadk.remotecontrol;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
@@ -79,5 +81,4 @@ public class RemoteControlService extends Service {
 		Log.d(TAG, "onUnbind");
 		return true;
 	}
-
 }
