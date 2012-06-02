@@ -28,7 +28,7 @@ public class Settings {
 	}
 
 	public String getRCServer() {
-		return this.preferences.getString("rc_server", "");
+		return this.preferences.getString("rc_server", "localhost");
 	}
 
 	public boolean isPreventGoingToSleep() {

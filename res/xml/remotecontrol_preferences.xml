@@ -9,7 +9,7 @@
             android:title="@string/title_auto_start_rcserver" />
         <EditTextPreference
             android:defaultValue="12345"
-            android:dialogMessage="Port number, in range 1024-65536"
+            android:dialogMessage="@string/dialogmessage_tcp_port"
             android:key="tcp_port"
             android:summary="@string/summary_tcp_port"
             android:title="@string/title_tcp_port" />

@@ -17,8 +17,6 @@ public class MathHelperTests {
 		//tests aux limites
 		Assert.assertEquals(oMin, MathHelper.map(iMin, iMin, iMax, oMin, oMax), 0);
 		Assert.assertEquals(oMax, MathHelper.map(iMax, iMin, iMax, oMin, oMax), 0);
-
-		//Assert.assertEquals(0, MathHelper.map(-11, -10, 10, 0, 180), 0);
 	}
 
 	@Test

@@ -25,6 +25,7 @@ public class TCPClient extends Thread {
 	private final int port;
 
 	public TCPClient(String host, int port) {
+		setName(TAG);
 		this.host = host;
 		this.port = port;
 	}

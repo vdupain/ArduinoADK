@@ -23,8 +23,9 @@
         android:label="@string/app_name" >
         <service android:name=".ArduinoADKService" />
         <service android:name=".usb.UsbAccessoryService" />
-        <service android:name=".remotecontrol.RemoteControlService" />
-
+        <service android:name=".remotecontrol.RemoteControlServerService" />
+        <service android:name=".remotecontrol.RemoteControlClientService" />
+        
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name" >
@@ -36,10 +37,12 @@
         </activity>
         <activity
             android:name=".RemoteControlServerActivity"
+            android:launchMode="singleInstance"
             android:label="@string/app_name">
         </activity>
         <activity
             android:name=".RemoteControlClientActivity"
+            android:launchMode="singleInstance"
             android:label="@string/app_name" >
         </activity>
         <activity

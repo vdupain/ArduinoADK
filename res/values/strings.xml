@@ -18,6 +18,12 @@
     <string name="notif_service_started">ArduinoADK Service started</string>
     <string name="notif_service_stopped">ArduinoADK Service stopped</string>
     <string name="notif_service_label">ArduinoADK</string>
+    <string name="notif_rcserver_service_started">RCServer started</string>
+    <string name="notif_rcserver_service_stopped">RCServer Service stopped</string>
+    <string name="notif_rcserver_service_label">RCServer</string>
+    <string name="notif_rcclient_service_started">RCClient started</string>
+    <string name="notif_rcclient_service_stopped">RCClient Service stopped</string>
+    <string name="notif_rcclient_service_label">RCClient</string>
     
     <!-- Menu -->
     <string name="menu_settings">Settings</string>
@@ -41,6 +47,7 @@
     <string name="summary_auto_start_rcserver">Start up server automaticaly when application starts</string>
     <string name="title_tcp_port">TCP Port</string>
     <string name="summary_tcp_port">TCP Port number to bind locally</string>
+    <string name="dialogmessage_tcp_port">Port number, in range 1024&#8211;65536</string>
     <string name="title_rc_server">Hostname</string>
     <string name="summary_rc_server">Hostname or IP address of the RC Server</string>
     <string name="title_prevent_going_to_sleep">Prevent going to sleep</string>

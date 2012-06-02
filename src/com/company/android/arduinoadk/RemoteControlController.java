@@ -26,7 +26,7 @@ public class RemoteControlController extends
 	}
 
 	public void displayIP() {
-		ip.setText(this.activity.getRemoteControlManager().getIpInfo());
+		//ip.setText(this.activity.getRemoteControlManager().getIpInfo());
 	}
 
 	public void logConsole(String message) {

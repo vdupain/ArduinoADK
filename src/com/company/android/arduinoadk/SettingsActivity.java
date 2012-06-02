@@ -19,7 +19,6 @@ public class SettingsActivity extends PreferenceActivity {
 	 */
 	@Override
 	public void onBuildHeaders(List<Header> target) {
-		PreferenceManager.setDefaultValues(getApplicationContext(), R.xml.preference_headers, false);
 		loadHeadersFromResource(R.xml.preference_headers, target);
 	}
 

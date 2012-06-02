@@ -11,7 +11,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.os.Handler;
 import android.os.Message;
-import android.os.Messenger;
 import android.util.Log;
 
 import com.company.android.arduinoadk.WhatAbout;
@@ -22,13 +21,14 @@ import com.company.android.arduinoadk.WhatAbout;
 public class TCPServer extends Thread {
 	private static final String TAG = TCPServer.class.getSimpleName();
 
-	private Handler handler;
+	private Handler handler = new Handler();
 	private int port;
 	private ClientHandler clientHandler;
 	private ServerSocket serverSocket;
 	private AtomicBoolean isListen = new AtomicBoolean(false);
 
 	public TCPServer(int port) {
+		setName(TAG);
 		this.port = port;
 		try {
 			this.serverSocket = new ServerSocket(port);
@@ -73,6 +73,7 @@ public class TCPServer extends Thread {
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
 		} finally {
+			log("Stopping server...");
 			isListen.set(false);
 			try {
 				serverSocket.close();
