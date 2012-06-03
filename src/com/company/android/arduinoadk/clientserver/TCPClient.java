@@ -13,7 +13,7 @@ import android.util.Log;
 
 import com.company.android.arduinoadk.WhatAbout;
 
-public class TCPClient extends Thread {
+public class TCPClient extends BaseEndPoint {
 	private final String TAG = TCPClient.class.getSimpleName();
 
 	private Socket socket = null;
@@ -25,7 +25,6 @@ public class TCPClient extends Thread {
 	private final int port;
 
 	public TCPClient(String host, int port) {
-		setName(TAG);
 		this.host = host;
 		this.port = port;
 	}
@@ -48,28 +47,6 @@ public class TCPClient extends Thread {
 		return false;
 	}
 
-	public void doWhile() {
-		int len = 0;
-		try {
-			while (socket.isConnected()) {
-				try {
-					len = inputStream.read(buffer, 0, buffer.length);
-				} catch (IOException e) {
-					break;
-				}
-				if (len <= 0)
-					break;
-				String request = new String(buffer, 0, len);
-				// Send the obtained bytes to the UI Activity
-				handler.obtainMessage(WhatAbout.MESSAGE_READ.ordinal(), len, -1, buffer).sendToTarget();
-				handleRequest(request);
-			}
-		} finally {
-			closeResources();
-		}
-
-	}
-
 	private void handleRequest(String req) {
 		Log.d(TAG, req);
 	}
@@ -82,8 +59,6 @@ public class TCPClient extends Thread {
 		try {
 			if (outputStream != null) {
 				outputStream.write(buffer, 0, buffer.length);
-				// Share the sent message back to the UI Activity
-				handler.obtainMessage(WhatAbout.MESSAGE_WRITE.ordinal(), -1, -1, buffer).sendToTarget();
 			}
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
@@ -121,13 +96,7 @@ public class TCPClient extends Thread {
 		this.handler = handler;
 	}
 
-	@Override
-	public void run() {
-		if (this.connect(host, port))
-			doWhile();
-	}
-
-	public void cancel() {
+	public void onStop() {
 		if (socket != null)
 			try {
 				socket.close();
@@ -138,6 +107,29 @@ public class TCPClient extends Thread {
 
 	public boolean isConnected() {
 		return socket != null && socket.isConnected();
+	}
+
+	@Override
+	void doBeforeRun() {
+		this.connect(host, port);
+	}
+
+	@Override
+	void doInRun() {
+		int len = 0;
+		try {
+			len = inputStream.read(buffer, 0, buffer.length);
+		} catch (IOException e) {
+			return;
+		}
+		if (len <= 0)
+			return;
+		handleRequest(new String(buffer, 0, len));
+	}
+
+	@Override
+	void doAfterRun() {
+		closeResources();
 	}
 
 }

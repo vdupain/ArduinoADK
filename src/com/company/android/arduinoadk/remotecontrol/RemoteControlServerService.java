@@ -1,25 +1,32 @@
 package com.company.android.arduinoadk.remotecontrol;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.util.Log;
 
 import com.company.android.arduinoadk.ArduinoADK;
 import com.company.android.arduinoadk.R;
 import com.company.android.arduinoadk.RemoteControlServerActivity;
+import com.company.android.arduinoadk.WhatAbout;
 import com.company.android.arduinoadk.clientserver.TCPServer;
 import com.company.android.arduinoadk.usb.UsbAccessoryManager;
 
 /**
- * This service is only used to contain the RemoteControlServer running in the
- * background. To use it, you need to bind to this service and get it from the
- * binder.
+ * This service is used to contain the TCPServer running in the background. To
+ * use it, you need to bind to this service and get it from the binder.
  */
 public class RemoteControlServerService extends Service {
 
@@ -32,18 +39,21 @@ public class RemoteControlServerService extends Service {
 	// Binder given to clients
 	private final IBinder binder = new RemoteControlServerBinder();
 
-	/** For showing and hiding our notification. */
+	// For showing and hiding our notification.
 	private NotificationManager notificationManager;
 
 	private TCPServer server;
 
 	private UsbAccessoryManager usbAccessoryManager;
 
+	private Handler handler = new Handler();
+
 	/**
 	 * Class used for the client Binder. Because we know this service always
 	 * runs in the same process as its clients, we don't need to deal with IPC.
 	 */
 	public class RemoteControlServerBinder extends Binder {
+
 		public RemoteControlServerService getService() {
 			return RemoteControlServerService.this;
 		}
@@ -60,15 +70,6 @@ public class RemoteControlServerService extends Service {
 		showNotification();
 	}
 
-	private void startServer() {
-		if (server == null) {
-			int serverPort = ((ArduinoADK) getApplicationContext()).getSettings().getRCServerTCPPort();
-			server = new TCPServer(serverPort);
-			this.server.setClientHandler(new RemoteControlClientHandler(this.usbAccessoryManager));
-			server.start();
-		}
-	}
-
 	@Override
 	public void onDestroy() {
 		// The service is no longer used and is being destroyed
@@ -76,18 +77,6 @@ public class RemoteControlServerService extends Service {
 		stopServer();
 		// Cancel the persistent notification.
 		clearNotification();
-	}
-
-	private void stopServer() {
-		if (server!=null) {
-			this.server.stopServer();
-			try {
-				server.join();
-			} catch (InterruptedException e) {
-				Log.e(TAG, e.getMessage(), e);
-			}
-			server = null;
-		}
 	}
 
 	@Override
@@ -119,7 +108,25 @@ public class RemoteControlServerService extends Service {
 	}
 
 	public boolean isRunning() {
-		return server!=null && server.isAlive();
+		return server != null;
+	}
+
+	private void startServer() {
+		if (server == null) {
+			int serverPort = ((ArduinoADK) getApplicationContext()).getSettings().getRCServerTCPPort();
+			server = new TCPServer(serverPort);
+			this.server.setClientHandler(new RemoteControlClientHandler(this.usbAccessoryManager));
+			server.start();
+			this.handler.sendMessage(Message.obtain(handler, WhatAbout.SERVER_START.ordinal()));
+		}
+	}
+
+	private void stopServer() {
+		if (server != null) {
+			server.stop();
+			server = null;
+			this.handler.sendMessage(Message.obtain(handler, WhatAbout.SERVER_STOP.ordinal()));
+		}
 	}
 
 	/**
@@ -144,11 +151,40 @@ public class RemoteControlServerService extends Service {
 	}
 
 	public void setHandler(Handler handler) {
-		this.server.setHandler(handler);
+		this.handler = handler;
+		this.server.getClientHandler().setHandler(handler);
 	}
 
 	public void setUsbAccessoryManager(UsbAccessoryManager usbAccessoryManager) {
 		this.usbAccessoryManager = usbAccessoryManager;
+	}
+
+	public String getIpInfo() {
+		if (!isRunning())
+			return "";
+		StringBuffer s = new StringBuffer();
+		// Determines if user is connected to a wireless network & displays ip
+		WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+		WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+		if (wifiInfo.getNetworkId() > -1) {
+			int ipAddress = wifiInfo.getIpAddress();
+			byte[] byteaddr = new byte[] { (byte) (ipAddress & 0xff), (byte) (ipAddress >> 8 & 0xff), (byte) (ipAddress >> 16 & 0xff),
+					(byte) (ipAddress >> 24 & 0xff) };
+			InetAddress inetAddress;
+			try {
+				inetAddress = InetAddress.getByAddress(byteaddr);
+				s.append("tcp://");
+				s.append(inetAddress.getHostAddress());
+				s.append(":" + server.getPort() + "/");
+			} catch (UnknownHostException e) {
+				Log.e(TAG, e.getMessage(), e);
+				s.delete(0, s.length());
+				s.append(e.getMessage());
+			}
+		} else {
+			s.append("Wifi should be enabled !");
+		}
+		return s.toString();
 	}
 
 }

@@ -27,9 +27,8 @@ import com.company.android.arduinoadk.WhatAbout;
 import com.company.android.arduinoadk.clientserver.TCPClient;
 
 /**
- * This service is only used to contain the RemoteControlServer running in the
- * background. To use it, you need to bind to this service and get it from the
- * binder.
+ * This service is only used to contain the TCPClient running in the background.
+ * To use it, you need to bind to this service and get it from the binder.
  */
 public class RemoteControlClientService extends Service implements SensorEventListener {
 
@@ -42,7 +41,7 @@ public class RemoteControlClientService extends Service implements SensorEventLi
 	// Binder given to clients
 	private final IBinder binder = new RemoteControlClientBinder();
 
-	/** For showing and hiding our notification. */
+	// For showing and hiding our notification.
 	private NotificationManager notificationManager;
 
 	private TCPClient client;
@@ -58,6 +57,7 @@ public class RemoteControlClientService extends Service implements SensorEventLi
 	 * runs in the same process as its clients, we don't need to deal with IPC.
 	 */
 	public class RemoteControlClientBinder extends Binder {
+
 		public RemoteControlClientService getService() {
 			return RemoteControlClientService.this;
 		}
@@ -68,55 +68,21 @@ public class RemoteControlClientService extends Service implements SensorEventLi
 	public void onCreate() {
 		// The service is being created
 		Log.d(TAG, "onCreate");
-		// Get an instance of the SensorManager
-		sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-		accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		// and instantiate the display to know the device orientation
-		display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-		Log.i(TAG, "accelerometer maximum range =" + accelerometer.getMaximumRange());
-		Log.i(TAG, "accelerometer name =" + accelerometer.getName());
-		Log.i(TAG, "accelerometer vendor =" + accelerometer.getVendor());
-		Log.i(TAG, "accelerometer version =" + accelerometer.getVersion());
-		Log.i(TAG, "accelerometer resolution =" + accelerometer.getResolution());
-		Log.i(TAG, "accelerometer power =" + accelerometer.getPower());
-		Log.i(TAG, "accelerometer min delay =" + accelerometer.getMinDelay());
-		Log.i(TAG, "accelerometer type =" + accelerometer.getType());
-
+		initSensors();
 		startClient();
 		notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 		// Display a notification about us starting.
 		showNotification();
 	}
 
-	private void startClient() {
-		if (client == null) {
-			int serverPort = ((ArduinoADK) getApplicationContext()).getSettings().getRCServerTCPPort();
-			String host = ((ArduinoADK) getApplicationContext()).getSettings().getRCServer();
-			client = new TCPClient(host, serverPort);
-			client.start();
-		}
-	}
-
 	@Override
 	public void onDestroy() {
 		// The service is no longer used and is being destroyed
 		Log.d(TAG, "onDestroy");
+		sensorManager.unregisterListener(this);
 		stopClient();
 		// Cancel the persistent notification.
 		clearNotification();
-	}
-
-	private void stopClient() {
-		if (client!=null) {
-			sensorManager.unregisterListener(this);
-			client.cancel();
-			try {
-				client.join();
-			} catch (InterruptedException e) {
-				Log.e(TAG, e.getMessage(), e);
-			}
-			client = null;
-		}
 	}
 
 	@Override
@@ -147,8 +113,40 @@ public class RemoteControlClientService extends Service implements SensorEventLi
 		return true;
 	}
 
+	private void initSensors() {
+		// Get an instance of the SensorManager
+		sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+		accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		// and instantiate the display to know the device orientation
+		display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+		Log.i(TAG, "accelerometer maximum range =" + accelerometer.getMaximumRange());
+		Log.i(TAG, "accelerometer name =" + accelerometer.getName());
+		Log.i(TAG, "accelerometer vendor =" + accelerometer.getVendor());
+		Log.i(TAG, "accelerometer version =" + accelerometer.getVersion());
+		Log.i(TAG, "accelerometer resolution =" + accelerometer.getResolution());
+		Log.i(TAG, "accelerometer power =" + accelerometer.getPower());
+		Log.i(TAG, "accelerometer min delay =" + accelerometer.getMinDelay());
+		Log.i(TAG, "accelerometer type =" + accelerometer.getType());
+	}
+
+	private void startClient() {
+		if (client == null) {
+			int serverPort = ((ArduinoADK) getApplicationContext()).getSettings().getRCServerTCPPort();
+			String host = ((ArduinoADK) getApplicationContext()).getSettings().getRCServer();
+			client = new TCPClient(host, serverPort);
+			client.start();
+		}
+	}
+
+	private void stopClient() {
+		if (client != null) {
+			client.stop();
+			client = null;
+		}
+	}
+
 	public boolean isRunning() {
-		return client!=null && client.isAlive();
+		return client != null;
 	}
 
 	/**
@@ -185,7 +183,6 @@ public class RemoteControlClientService extends Service implements SensorEventLi
 		if (isRunning() && client.isConnected()) {
 			client.writeContent("STICK:x=" + valueX + ":y=" + valueY + "\n");
 		}
-
 		Message m = Message.obtain(handler, WhatAbout.RCCLIENT_POSITION.ordinal(), new PositionMessage(valueX, valueY));
 		handler.sendMessage(m);
 	}

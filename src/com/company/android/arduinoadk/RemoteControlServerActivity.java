@@ -63,12 +63,15 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 	}
 
 	private void handleServerStart() {
+		logConsole("Listening on port xxx");
+		logConsole("Accept client connection...");
 		logConsole("RC Server started...");
 		controller.displayIP();
 	}
 
 	private void handleServerStop() {
 		logConsole("RC Server stopped...");
+		controller.displayIP();
 	}
 
 	@Override
@@ -91,7 +94,6 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 	public void onPause() {
 		super.onPause();
 		controller.usbAccessoryDetached();
-
 	}
 
 	@Override
@@ -113,13 +115,22 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 	private void doBindServices() {
 		Log.d(TAG, "bindServices");
 		// Bind from the service
-		boolean success = bindService(new Intent(this, UsbAccessoryService.class), usbServiceConnection, Context.BIND_AUTO_CREATE);
-		if (!success) {
-			Log.e(TAG, "Failed to bind to " + UsbAccessoryService.class.getSimpleName());
-		}
+		doBindUsbAccessoryService();
+		doBindRemoteControlServerService();
+	}
+
+	private void doBindRemoteControlServerService() {
+		boolean success;
 		success = bindService(new Intent(this, RemoteControlServerService.class), remoteControlServiceConnection, 0);
 		if (!success) {
 			Log.e(TAG, "Failed to bind to " + RemoteControlServerService.class.getSimpleName());
+		}
+	}
+
+	private void doBindUsbAccessoryService() {
+		boolean success = bindService(new Intent(this, UsbAccessoryService.class), usbServiceConnection, Context.BIND_AUTO_CREATE);
+		if (!success) {
+			Log.e(TAG, "Failed to bind to " + UsbAccessoryService.class.getSimpleName());
 		}
 	}
 
@@ -129,10 +140,18 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 	private void doUnbindServices() {
 		Log.d(TAG, "doUnbindServices");
 		// Detach our existing connection
+		doUnbindRemoteControlServerService();
+		doUnbindUsbAccessoryService();
+	}
+
+	private void doUnbindRemoteControlServerService() {
 		if (isBoundToRemoteControlServerService()) {
 			unbindService(remoteControlServiceConnection);
 			this.remoteControlServerService = null;
 		}
+	}
+
+	private void doUnbindUsbAccessoryService() {
 		if (isBoundToUsbAccessoryManager()) {
 			unbindService(usbServiceConnection);
 			this.usbAccessoryManager = null;
@@ -158,14 +177,10 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 		case R.id.switchRCServer:
 			if (buttonView.isChecked()) {
 				startService(new Intent(this, RemoteControlServerService.class));
-				boolean success = bindService(new Intent(this, RemoteControlServerService.class), remoteControlServiceConnection, Context.BIND_AUTO_CREATE);
-				if (!success) {
-					Log.e(TAG, "Failed to bind to " + RemoteControlServerService.class.getSimpleName());
-				}
+				doBindRemoteControlServerService();
 			} else {
-				unbindService(remoteControlServiceConnection);
+				doUnbindRemoteControlServerService();
 				stopService(new Intent(this, RemoteControlServerService.class));
-				this.remoteControlServerService = null;
 			}
 			break;
 		}
@@ -224,6 +239,10 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 	@Override
 	public void onDisconnected() {
 		Log.d(TAG, "onDisconnected");
+	}
+
+	public RemoteControlServerService getRemoteControlServerService() {
+		return remoteControlServerService;
 	}
 
 }

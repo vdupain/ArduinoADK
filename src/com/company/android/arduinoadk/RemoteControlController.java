@@ -3,10 +3,8 @@ package com.company.android.arduinoadk;
 import android.text.Html;
 import android.widget.TextView;
 
-public class RemoteControlController extends
-		AbstractController<RemoteControlServerActivity> {
-	private static final String TAG = RemoteControlController.class
-			.getSimpleName();
+public class RemoteControlController extends AbstractController<RemoteControlServerActivity> {
+	private static final String TAG = RemoteControlController.class.getSimpleName();
 
 	private TextView console;
 	private TextView ip;
@@ -26,7 +24,9 @@ public class RemoteControlController extends
 	}
 
 	public void displayIP() {
-		//ip.setText(this.activity.getRemoteControlManager().getIpInfo());
+		if (this.activity.getRemoteControlServerService()!=null)
+		ip.setText(this.activity.getRemoteControlServerService().getIpInfo());
+		else ip.setText("");
 	}
 
 	public void logConsole(String message) {

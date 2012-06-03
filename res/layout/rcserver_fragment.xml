@@ -1,51 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/mainlayout"
-    android:layout_width="wrap_content"
-    android:layout_height="fill_parent"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <TextView
-        android:id="@+id/ip"
-        android:layout_width="wrap_content"
+    <Switch
+        android:id="@+id/switchRCServer"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="20dp"
-        android:paddingLeft="5dip"
-        android:shadowColor="#000000"
-        android:shadowDx="1"
-        android:shadowDy="1"
-        android:shadowRadius="1"
-        android:text="@string/ip_address"
-        android:textColor="@color/orange" />
-
-    <LinearLayout
-        android:id="@+id/linearLayout1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true" >
-
-        <Switch
-            android:id="@+id/switchRCServer"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:text="@string/rcserver" />
-    </LinearLayout>
+        android:text="@string/rcserver" />
 
     <TextView
         android:id="@+id/console"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/linearLayout1"
         android:layout_marginLeft="10dip"
         android:layout_marginRight="10dp"
-        android:gravity="top"
-        android:shadowColor="#000000"
-        android:shadowDx="1"
-        android:shadowDy="1"
-        android:shadowRadius="1"
+        android:layout_weight="1"
+        android:background="@drawable/blue"
+        android:shadowColor="#000000" />
+
+    <TextView
+        android:id="@+id/ip"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/ip_address"
+        android:gravity="center"
         android:textColor="@color/orange" />
 
-</RelativeLayout>
+</LinearLayout>

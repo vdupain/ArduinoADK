@@ -9,26 +9,22 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 
-import com.company.android.arduinoadk.WhatAbout;
-
 /**
- * This thread listens to client connection and delegates it to worker threads.
+ * This server listens to client connection and delegates it to worker threads.
  */
-public class TCPServer extends Thread {
-	private static final String TAG = TCPServer.class.getSimpleName();
+public class TCPServer extends BaseEndPoint {
+	static final String TAG = TCPServer.class.getSimpleName();
 
-	private Handler handler = new Handler();
 	private int port;
 	private ClientHandler clientHandler;
 	private ServerSocket serverSocket;
-	private AtomicBoolean isListen = new AtomicBoolean(false);
+	private Socket clientSocket;
+	// One client handled at a time only
+	ExecutorService pool = Executors.newSingleThreadExecutor();
 
 	public TCPServer(int port) {
-		setName(TAG);
 		this.port = port;
 		try {
 			this.serverSocket = new ServerSocket(port);
@@ -37,89 +33,62 @@ public class TCPServer extends Thread {
 		}
 	}
 
-	public void stopServer() {
+	void onStop() {
 		try {
 			serverSocket.close();
 		} catch (IOException e) {
 			Log.d(TAG, e.getMessage());
 		}
-		this.interrupt();
-	}
-
-	@Override
-	public void run() {
-		log("Listening on port " + this.serverSocket.getLocalPort());
-		Socket clientSocket = null;
-		try {
-			// One client handled at a time only
-			ExecutorService pool = Executors.newSingleThreadExecutor();
-			this.handler.sendMessage(Message.obtain(handler, WhatAbout.SERVER_START.ordinal()));
-			log("Accept client connection...");
-			isListen.set(true);
-			try {
-				while (!Thread.currentThread().isInterrupted()) {
-					Thread.sleep(100);
-					try {
-						clientSocket = serverSocket.accept();
-						clientHandler.setSocket(clientSocket);
-						pool.execute(clientHandler);
-					} catch (SocketTimeoutException ignored) {
-					} catch (SocketException ignored) {
-					}
-				}
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupted();
-			}
-		} catch (IOException e) {
-			Log.e(TAG, e.getMessage(), e);
-		} finally {
-			log("Stopping server...");
-			isListen.set(false);
-			try {
-				serverSocket.close();
-				serverSocket = null;
-				this.handler.sendMessage(Message.obtain(handler, WhatAbout.SERVER_STOP.ordinal()));
-			} catch (IOException e) {
-				Log.e(TAG, e.getMessage(), e);
-			}
-			if (clientSocket != null) {
-				try {
-					clientSocket.close();
-					log("Client disconnected from Server");
-				} catch (IOException e) {
-					Log.e(TAG, e.getMessage(), e);
-				}
-			}
-		}
-	}
-
-	public boolean isListen() {
-		return isListen.get();
 	}
 
 	public int getPort() {
 		return port;
 	}
 
-	private void log(String msg) {
-		Log.d(TAG, msg);
-		sendMessage(msg);
+	public void setClientHandler(ClientHandler clientHandler) {
+		this.clientHandler = clientHandler;
 	}
 
-	private void sendMessage(String text) {
-		Message message = Message.obtain(handler, WhatAbout.SERVER_LOG.ordinal(), text);
-		this.handler.sendMessage(message);
+	public ClientHandler getClientHandler() {
+		return this.clientHandler;
 	}
 
-	public void setHandler(Handler handler) {
-		this.handler = handler;
-		if (clientHandler != null) {
-			clientHandler.setHandler(handler);
+	@Override
+	void doBeforeRun() {
+	}
+
+	@Override
+	void doInRun() {
+		Log.d(TAG, "Listening on port " + this.serverSocket.getLocalPort());
+		try {
+			clientSocket = serverSocket.accept();
+			clientHandler.setSocket(clientSocket);
+			pool.execute(clientHandler);
+		} catch (SocketTimeoutException ignored) {
+		} catch (SocketException ignored) {
+		} catch (IOException e) {
+			Log.e(TAG, e.getMessage(), e);
 		}
 	}
 
-	public void setClientHandler(ClientHandler clientHandler) {
-		this.clientHandler = clientHandler;
+	@Override
+	void doAfterRun() {
+		Log.d(TAG, "Stopping server...");
+		try {
+			serverSocket.close();
+			serverSocket = null;
+		} catch (IOException e) {
+			Log.e(TAG, e.getMessage(), e);
+		}
+		if (clientSocket != null) {
+			try {
+				clientSocket.close();
+				Log.d(TAG, "Client disconnected from Server");
+			} catch (IOException e) {
+				Log.e(TAG, e.getMessage(), e);
+			}
+		}
+
 	}
 
 }
