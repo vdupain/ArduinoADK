@@ -12,15 +12,16 @@ import android.content.Intent;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
+import android.os.Messenger;
 import android.util.Log;
 
 import com.company.android.arduinoadk.ArduinoADK;
+import com.company.android.arduinoadk.MyIntent;
 import com.company.android.arduinoadk.R;
 import com.company.android.arduinoadk.RemoteControlServerActivity;
-import com.company.android.arduinoadk.WhatAbout;
 import com.company.android.arduinoadk.clientserver.TCPServer;
 import com.company.android.arduinoadk.usb.UsbAccessoryManager;
 
@@ -46,7 +47,8 @@ public class RemoteControlServerService extends Service {
 
 	private UsbAccessoryManager usbAccessoryManager;
 
-	private Handler handler = new Handler();
+	// Use to send message to the Activity
+	private Messenger outMessenger;
 
 	/**
 	 * Class used for the client Binder. Because we know this service always
@@ -92,7 +94,11 @@ public class RemoteControlServerService extends Service {
 	public IBinder onBind(Intent intent) {
 		// A client is binding to the service with bindService()
 		Log.d(TAG, "onBind");
-
+		Bundle extras = intent.getExtras();
+		// Get messager from the Activity
+		if (extras != null) {
+			outMessenger = (Messenger) extras.get("MESSENGER");
+		}
 		return this.binder;
 	}
 
@@ -117,7 +123,7 @@ public class RemoteControlServerService extends Service {
 			server = new TCPServer(serverPort);
 			this.server.setClientHandler(new RemoteControlClientHandler(this.usbAccessoryManager));
 			server.start();
-			this.handler.sendMessage(Message.obtain(handler, WhatAbout.SERVER_START.ordinal()));
+			sendBroadcast(new Intent(MyIntent.ACTION_SERVER_STARTED));
 		}
 	}
 
@@ -125,7 +131,7 @@ public class RemoteControlServerService extends Service {
 		if (server != null) {
 			server.stop();
 			server = null;
-			this.handler.sendMessage(Message.obtain(handler, WhatAbout.SERVER_STOP.ordinal()));
+			sendBroadcast(new Intent(MyIntent.ACTION_SERVER_STOPPED));
 		}
 	}
 
@@ -151,7 +157,6 @@ public class RemoteControlServerService extends Service {
 	}
 
 	public void setHandler(Handler handler) {
-		this.handler = handler;
 		this.server.getClientHandler().setHandler(handler);
 	}
 

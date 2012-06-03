@@ -1,11 +1,14 @@
 package com.company.android.arduinoadk;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.Messenger;
 import android.util.Log;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
@@ -36,16 +39,21 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 		public void handleMessage(Message msg) {
 			switch (WhatAbout.values()[msg.what]) {
 			case SERVER_LOG:
-				logConsole("" + msg.obj);
-				break;
-			case SERVER_START:
-				handleServerStart();
-				break;
-			case SERVER_STOP:
-				handleServerStop();
+				controller.logConsole("" + msg.obj);
 				break;
 			default:
 				break;
+			}
+		}
+	};
+	private final BroadcastReceiver remoteControlServerReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String action = intent.getAction();
+			if (MyIntent.ACTION_SERVER_STARTED.equals(action)) {
+				handleServerStart();
+			} else if (MyIntent.ACTION_SERVER_STOPPED.equals(action)) {
+				handleServerStop();
 			}
 		}
 	};
@@ -63,20 +71,22 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 	}
 
 	private void handleServerStart() {
-		logConsole("Listening on port xxx");
-		logConsole("Accept client connection...");
-		logConsole("RC Server started...");
+		controller.logConsole("RC Server started...");
 		controller.displayIP();
 	}
 
 	private void handleServerStop() {
-		logConsole("RC Server stopped...");
+		controller.logConsole("RC Server stopped...");
 		controller.displayIP();
 	}
 
 	@Override
 	protected void onStart() {
 		super.onStart();
+		IntentFilter filter = new IntentFilter();
+		filter.addAction(MyIntent.ACTION_SERVER_STARTED);
+		filter.addAction(MyIntent.ACTION_SERVER_STOPPED);
+		registerReceiver(remoteControlServerReceiver, filter);
 		doBindServices();
 	}
 
@@ -99,6 +109,7 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 	@Override
 	protected void onStop() {
 		super.onStop();
+		unregisterReceiver(remoteControlServerReceiver);
 		doUnbindServices();
 	}
 
@@ -120,8 +131,10 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 	}
 
 	private void doBindRemoteControlServerService() {
-		boolean success;
-		success = bindService(new Intent(this, RemoteControlServerService.class), remoteControlServiceConnection, 0);
+		Intent intent = new Intent(this, RemoteControlServerService.class);
+		Messenger messenger = new Messenger(handler);
+		intent.putExtra("MESSENGER", messenger);
+		boolean success = bindService(intent, remoteControlServiceConnection, 0);
 		if (!success) {
 			Log.e(TAG, "Failed to bind to " + RemoteControlServerService.class.getSimpleName());
 		}
@@ -200,10 +213,6 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 		switchRCServer.setChecked(false);
 		doUnbindServices();
 		stopServices();
-	}
-
-	public void logConsole(String message) {
-		controller.logConsole(message);
 	}
 
 	@Override

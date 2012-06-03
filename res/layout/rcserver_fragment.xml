@@ -9,6 +9,8 @@
         android:id="@+id/switchRCServer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="5dip"
+        android:layout_marginBottom="5dip"
         android:text="@string/rcserver" />
 
     <TextView
@@ -17,7 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dip"
         android:layout_marginRight="10dp"
-        android:layout_weight="1"
+        android:layout_weight="0.46"
         android:background="@drawable/blue"
         android:shadowColor="#000000" />
 
