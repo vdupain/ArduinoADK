@@ -1,32 +1,42 @@
-<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mainlayout"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent" >
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
 
-    <TableRow>
+    <Switch
+        android:id="@+id/switchRCClient"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/rcclient" />
 
-        <Switch
-            android:id="@+id/switchRCClient"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:text="@string/rcclient" />
-    </TableRow>
+    <com.company.android.arduinoadk.ConsoleView
+        android:id="@+id/consoleClient"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/switchRCClient"
+        android:gravity="top"
+        android:shadowColor="#000000"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="1"
+        android:textColor="@color/orange" />
 
-    <TableRow>
+    <TextView
+        android:id="@+id/xcoor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/switchRCClient"
+        android:text="X Coordinate: " />
 
-        <TextView
-            android:id="@+id/xcoor"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="X Coordinate: " />
-    </TableRow>
+    <TextView
+        android:id="@+id/ycoor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/xcoor"
+        android:text="Y Coordinate: " />
 
-    <TableRow>
-
-        <TextView
-            android:id="@+id/ycoor"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Y Coordinate: " />
-    </TableRow>
-
-</TableLayout>
+</RelativeLayout>

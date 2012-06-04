@@ -1,17 +1,16 @@
 package com.company.android.arduinoadk;
 
-import android.text.Html;
 import android.widget.TextView;
 
 public class RemoteControlController extends AbstractController<RemoteControlServerActivity> {
 	private static final String TAG = RemoteControlController.class.getSimpleName();
 
-	private TextView console;
+	private ConsoleView console;
 	private TextView ip;
 
 	public RemoteControlController(RemoteControlServerActivity activity) {
 		super(activity);
-		console = (TextView) findViewById(R.id.console);
+		console = (ConsoleView) findViewById(R.id.console);
 		ip = (TextView) findViewById(R.id.ip);
 	}
 
@@ -24,17 +23,14 @@ public class RemoteControlController extends AbstractController<RemoteControlSer
 	}
 
 	public void displayIP() {
-		if (this.activity.getRemoteControlServerService()!=null)
-		ip.setText(this.activity.getRemoteControlServerService().getIpInfo());
-		else ip.setText("");
+		if (this.activity.getRemoteControlServerService() != null)
+			ip.setText(this.activity.getRemoteControlServerService().getIpInfo());
+		else
+			ip.setText("");
 	}
 
 	public void logConsole(String message) {
-		String t = console.getText().toString();
-		if (t.split("\n").length >= 20) {
-			console.setText(t.substring(t.indexOf("\n") + 1, t.length()));
-		}
-		console.append(Html.fromHtml(message + "<br />"));
+		console.log(message);
 	}
 
 }

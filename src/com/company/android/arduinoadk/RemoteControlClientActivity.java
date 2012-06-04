@@ -65,6 +65,7 @@ public class RemoteControlClientActivity extends BaseActivity implements Service
 
 	private void handlePositionMessage(PositionMessage positionMessage) {
 		controller.setPosition(positionMessage.getX(), positionMessage.getY());
+		controller.logConsole(positionMessage.getX() + " - " + positionMessage.getY());
 	}
 
 	private void handleServerConnectionFailure(Exception ex) {
@@ -100,10 +101,6 @@ public class RemoteControlClientActivity extends BaseActivity implements Service
 		switchRCClient.setChecked(false);
 		doUnbindServices();
 		stopServices();
-	}
-
-	public void setPosition(float x, float y) {
-		controller.setPosition(x, y);
 	}
 
 	@Override

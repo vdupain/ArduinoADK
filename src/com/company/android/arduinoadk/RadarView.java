@@ -19,9 +19,10 @@ public class RadarView extends View {
 	private Paint paint3 = new Paint();
 
 	private int height, width;
-	private int[] newValues = new int[181]; // create an array to store each new
-											// value
-	private int[] oldValues = new int[181]; // to store the previous values.
+	// create an array to store each new value
+	private int[] newValues = new int[181]; 
+	// to store the previous values
+	private int[] oldValues = new int[181];
 	private int degree;
 	private int distance;
 	private boolean clockwise = true;
@@ -37,6 +38,7 @@ public class RadarView extends View {
 
 	public RadarView(Context context, AttributeSet attrs) {
 		this(context, attrs, 0);
+		initRadarView(context);
 	}
 
 	public RadarView(Context context, AttributeSet attrs, int defStyle) {

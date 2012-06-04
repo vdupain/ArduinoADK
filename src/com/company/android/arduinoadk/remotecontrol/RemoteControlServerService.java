@@ -123,7 +123,8 @@ public class RemoteControlServerService extends Service {
 			server = new TCPServer(serverPort);
 			this.server.setClientHandler(new RemoteControlClientHandler(this.usbAccessoryManager));
 			server.start();
-			sendBroadcast(new Intent(MyIntent.ACTION_SERVER_STARTED));
+			Intent intent = new Intent(MyIntent.ACTION_SERVER_STARTED);
+			sendBroadcast(intent);
 		}
 	}
 

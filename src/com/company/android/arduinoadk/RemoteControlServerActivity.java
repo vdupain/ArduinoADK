@@ -68,16 +68,17 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 		switchRCServer.setOnCheckedChangeListener(this);
 		initController();
 		createServices();
+
+		if (this.getArduinoADKApplication().getSettings().isRCServerAutoStart())
+			switchRCServer.setChecked(true);
 	}
 
 	private void handleServerStart() {
 		controller.logConsole("RC Server started...");
-		controller.displayIP();
 	}
 
 	private void handleServerStop() {
 		controller.logConsole("RC Server stopped...");
-		controller.displayIP();
 	}
 
 	@Override
@@ -242,6 +243,7 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 			remoteControlServerService = ((RemoteControlServerBinder) binder).getService();
 			remoteControlServerService.setHandler(this.handler);
 			switchRCServer.setChecked(remoteControlServerService.isRunning());
+			controller.displayIP();
 		}
 	}
 
