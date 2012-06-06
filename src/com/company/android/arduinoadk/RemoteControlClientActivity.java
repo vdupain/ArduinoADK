@@ -1,13 +1,13 @@
 package com.company.android.arduinoadk;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.Messenger;
 import android.util.Log;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
@@ -17,21 +17,26 @@ import com.company.android.arduinoadk.remotecontrol.PositionMessage;
 import com.company.android.arduinoadk.remotecontrol.RemoteControlClientService;
 import com.company.android.arduinoadk.remotecontrol.RemoteControlClientService.RemoteControlClientBinder;
 
-public class RemoteControlClientActivity extends BaseActivity implements ServiceConnected, OnCheckedChangeListener {
-	private static final String TAG = RemoteControlClientActivity.class.getSimpleName();
+public class RemoteControlClientActivity extends BaseActivity implements
+		ServiceConnected, OnCheckedChangeListener {
+	private static final String TAG = RemoteControlClientActivity.class
+			.getSimpleName();
 
 	private Switch switchRCClient;
 	private RemoteControlClientController controller;
 
-	private ArduinoADKServiceConnection remoteControlServiceConnection = new ArduinoADKServiceConnection(this);
+	private ArduinoADKServiceConnection remoteControlServiceConnection = new ArduinoADKServiceConnection(
+			this);
 	private RemoteControlClientService remoteControlClientService;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.rcclient_main);
-		RemoteControlClientFragment fragment = (RemoteControlClientFragment) getFragmentManager().findFragmentById(R.id.remoteControlClientFragment);
-		switchRCClient = (Switch) fragment.getView().findViewById(R.id.switchRCClient);
+		RemoteControlClientFragment fragment = (RemoteControlClientFragment) getFragmentManager()
+				.findFragmentById(R.id.remoteControlClientFragment);
+		switchRCClient = (Switch) fragment.getView().findViewById(
+				R.id.switchRCClient);
 		switchRCClient.setOnCheckedChangeListener(this);
 		initController();
 	}
@@ -65,13 +70,15 @@ public class RemoteControlClientActivity extends BaseActivity implements Service
 
 	private void handlePositionMessage(PositionMessage positionMessage) {
 		controller.setPosition(positionMessage.getX(), positionMessage.getY());
-		controller.logConsole(positionMessage.getX() + " - " + positionMessage.getY());
+		controller.logConsole(positionMessage.getX() + " - "
+				+ positionMessage.getY());
 	}
 
 	private void handleServerConnectionFailure(Exception ex) {
 		switchRCClient.setChecked(false);
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("Server connection failure").setMessage(ex.getMessage()).setCancelable(false)
+		builder.setTitle("Server connection failure")
+				.setMessage(ex.getMessage()).setCancelable(false)
 				.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int id) {
 					}
@@ -108,12 +115,8 @@ public class RemoteControlClientActivity extends BaseActivity implements Service
 		switch (buttonView.getId()) {
 		case R.id.switchRCClient:
 			if (buttonView.isChecked()) {
-				Intent intent = new Intent(this, RemoteControlClientService.class);
-				startService(intent);
-				boolean success = bindService(intent, remoteControlServiceConnection, Context.BIND_AUTO_CREATE);
-				if (!success) {
-					Log.e(TAG, "Failed to bind to " + RemoteControlClientService.class.getSimpleName());
-				}
+				startService(new Intent(this, RemoteControlClientService.class));
+				doBindRemoteControlClientService();
 			} else {
 				unbindService(remoteControlServiceConnection);
 				stopService(new Intent(this, RemoteControlClientService.class));
@@ -126,9 +129,18 @@ public class RemoteControlClientActivity extends BaseActivity implements Service
 	private void doBindServices() {
 		Log.d(TAG, "bindServices");
 		// Bind from the service
-		boolean success = bindService(new Intent(this, RemoteControlClientService.class), remoteControlServiceConnection, 0);
+		doBindRemoteControlClientService();
+	}
+
+	private void doBindRemoteControlClientService() {
+		Intent intent = new Intent(this, RemoteControlClientService.class);
+		Messenger messenger = new Messenger(handler);
+		intent.putExtra("MESSENGER", messenger);
+		boolean success = bindService(intent, remoteControlServiceConnection, 0);
 		if (!success) {
-			Log.e(TAG, "Failed to bind to " + RemoteControlClientService.class.getSimpleName());
+			Log.e(TAG,
+					"Failed to bind to "
+							+ RemoteControlClientService.class.getSimpleName());
 		}
 	}
 
@@ -162,7 +174,8 @@ public class RemoteControlClientActivity extends BaseActivity implements Service
 
 		// switch between the different services
 		if (binder instanceof RemoteControlClientBinder) {
-			remoteControlClientService = ((RemoteControlClientBinder) binder).getService();
+			remoteControlClientService = ((RemoteControlClientBinder) binder)
+					.getService();
 			remoteControlClientService.setHandler(this.handler);
 			switchRCClient.setChecked(remoteControlClientService.isRunning());
 		}

@@ -23,20 +23,4 @@
         android:shadowRadius="1"
         android:textColor="@color/orange" />
 
-    <TextView
-        android:id="@+id/xcoor"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/switchRCClient"
-        android:text="X Coordinate: " />
-
-    <TextView
-        android:id="@+id/ycoor"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/xcoor"
-        android:text="Y Coordinate: " />
-
 </RelativeLayout>

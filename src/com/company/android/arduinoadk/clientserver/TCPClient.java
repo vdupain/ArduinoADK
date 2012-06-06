@@ -37,10 +37,12 @@ public class TCPClient extends BaseEndPoint {
 			return true;
 		} catch (UnknownHostException e) {
 			Log.w(TAG, e.getMessage(), e);
-			this.handler.sendMessage(Message.obtain(handler, WhatAbout.SERVER_CONNECTION_FAILURE.ordinal(), e));
+			this.handler.sendMessage(Message.obtain(handler,
+					WhatAbout.SERVER_CONNECTION_FAILURE.ordinal(), e));
 		} catch (ConnectException e) {
 			Log.w(TAG, e.getMessage(), e);
-			this.handler.sendMessage(Message.obtain(handler, WhatAbout.SERVER_CONNECTION_FAILURE.ordinal(), e));
+			this.handler.sendMessage(Message.obtain(handler,
+					WhatAbout.SERVER_CONNECTION_FAILURE.ordinal(), e));
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
 		}
@@ -51,15 +53,13 @@ public class TCPClient extends BaseEndPoint {
 		Log.d(TAG, req);
 	}
 
-	public void writeContent(String content) {
+	public void write(String content) {
 		this.write(content.getBytes());
 	}
 
 	private void write(byte[] buffer) {
 		try {
-			if (outputStream != null) {
-				outputStream.write(buffer, 0, buffer.length);
-			}
+			outputStream.write(buffer, 0, buffer.length);
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage(), e);
 		}
@@ -101,7 +101,7 @@ public class TCPClient extends BaseEndPoint {
 			try {
 				socket.close();
 			} catch (IOException e) {
-				e.printStackTrace();
+				Log.e(TAG, e.getMessage(), e);
 			}
 	}
 
@@ -111,7 +111,9 @@ public class TCPClient extends BaseEndPoint {
 
 	@Override
 	void doBeforeRun() {
-		this.connect(host, port);
+		boolean connected = this.connect(host, port);
+		if (!connected)
+			stop.set(true);
 	}
 
 	@Override

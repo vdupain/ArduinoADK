@@ -11,9 +11,12 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.util.Log;
 import android.view.Display;
 import android.view.Surface;
@@ -30,9 +33,11 @@ import com.company.android.arduinoadk.clientserver.TCPClient;
  * This service is only used to contain the TCPClient running in the background.
  * To use it, you need to bind to this service and get it from the binder.
  */
-public class RemoteControlClientService extends Service implements SensorEventListener {
+public class RemoteControlClientService extends Service implements
+		SensorEventListener {
 
-	private static final String TAG = RemoteControlClientService.class.getSimpleName();
+	private static final String TAG = RemoteControlClientService.class
+			.getSimpleName();
 
 	// Unique Identification Number for the Notification.
 	// We use it on Notification start, and to cancel it.
@@ -50,7 +55,8 @@ public class RemoteControlClientService extends Service implements SensorEventLi
 	private SensorManager sensorManager;
 	private Sensor accelerometer;
 
-	private Handler handler;
+	// Use to send message to the Activity
+	private Messenger outMessenger;
 
 	/**
 	 * Class used for the client Binder. Because we know this service always
@@ -89,7 +95,8 @@ public class RemoteControlClientService extends Service implements SensorEventLi
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		// The service is starting, due to a call to startService()
 		Log.d(TAG, "onStartCommand startId " + startId + ": intent " + intent);
-		sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
+		sensorManager.registerListener(this, accelerometer,
+				SensorManager.SENSOR_DELAY_UI);
 		// We want this service to continue running until it is explicitly
 		// stopped, so return sticky.
 		return START_STICKY;
@@ -99,6 +106,11 @@ public class RemoteControlClientService extends Service implements SensorEventLi
 	public IBinder onBind(Intent intent) {
 		// A client is binding to the service with bindService()
 		Log.d(TAG, "onBind");
+		Bundle extras = intent.getExtras();
+		// Get messager from the Activity
+		if (extras != null) {
+			outMessenger = (Messenger) extras.get("MESSENGER");
+		}
 		return this.binder;
 	}
 
@@ -116,10 +128,14 @@ public class RemoteControlClientService extends Service implements SensorEventLi
 	private void initSensors() {
 		// Get an instance of the SensorManager
 		sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-		accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		accelerometer = sensorManager
+				.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		// and instantiate the display to know the device orientation
-		display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-		Log.i(TAG, "accelerometer maximum range =" + accelerometer.getMaximumRange());
+		display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE))
+				.getDefaultDisplay();
+		Log.i(TAG,
+				"accelerometer maximum range ="
+						+ accelerometer.getMaximumRange());
 		Log.i(TAG, "accelerometer name =" + accelerometer.getName());
 		Log.i(TAG, "accelerometer vendor =" + accelerometer.getVendor());
 		Log.i(TAG, "accelerometer version =" + accelerometer.getVersion());
@@ -131,8 +147,10 @@ public class RemoteControlClientService extends Service implements SensorEventLi
 
 	private void startClient() {
 		if (client == null) {
-			int serverPort = ((ArduinoADK) getApplicationContext()).getSettings().getRCServerTCPPort();
-			String host = ((ArduinoADK) getApplicationContext()).getSettings().getRCServer();
+			int serverPort = ((ArduinoADK) getApplicationContext())
+					.getSettings().getRCServerTCPPort();
+			String host = ((ArduinoADK) getApplicationContext()).getSettings()
+					.getRCServer();
 			client = new TCPClient(host, serverPort);
 			client.start();
 		}
@@ -156,10 +174,16 @@ public class RemoteControlClientService extends Service implements SensorEventLi
 		CharSequence text = getText(R.string.notif_rcclient_service_started);
 		// The PendingIntent to launch our activity if the user selects this
 		// notification
-		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, RemoteControlClientActivity.class), 0);
+		PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+				new Intent(this, RemoteControlClientActivity.class), 0);
 		// Set the info for the views that show in the notification panel.
-		Notification notification = new Notification.Builder(this).setTicker(text).setWhen(System.currentTimeMillis()).setSmallIcon(R.drawable.ic_launcher)
-				.setContentText(text).setContentTitle(getText(R.string.notif_rcclient_service_label)).setContentIntent(contentIntent).getNotification();
+		Notification notification = new Notification.Builder(this)
+				.setTicker(text)
+				.setWhen(System.currentTimeMillis())
+				.setSmallIcon(R.drawable.ic_launcher)
+				.setContentText(text)
+				.setContentTitle(getText(R.string.notif_rcclient_service_label))
+				.setContentIntent(contentIntent).getNotification();
 		// Send the notification.
 		// We use a string id because it is a unique number. We use it later to
 		// cancel.
@@ -171,7 +195,6 @@ public class RemoteControlClientService extends Service implements SensorEventLi
 	}
 
 	public void setHandler(Handler handler) {
-		this.handler = handler;
 		this.client.setHandler(handler);
 	}
 
@@ -181,10 +204,17 @@ public class RemoteControlClientService extends Service implements SensorEventLi
 		valueX = 180 - MathHelper.map(valueX, -10, 10, 0, 180);
 		valueY = MathHelper.map(valueY, -10, 10, 0, 180);
 		if (isRunning() && client.isConnected()) {
-			client.writeContent("STICK:x=" + valueX + ":y=" + valueY + "\n");
+			client.write("STICK:x=" + valueX + ":y=" + valueY + "\n");
 		}
-		Message m = Message.obtain(handler, WhatAbout.RCCLIENT_POSITION.ordinal(), new PositionMessage(valueX, valueY));
-		handler.sendMessage(m);
+
+		Message message = Message.obtain();
+		message.what = WhatAbout.RCCLIENT_POSITION.ordinal();
+		message.obj = new PositionMessage(valueX, valueY);
+		try {
+			outMessenger.send(message);
+		} catch (RemoteException e) {
+			Log.w(TAG, e);
+		}
 	}
 
 	@Override

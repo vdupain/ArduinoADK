@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -69,8 +70,16 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 		initController();
 		createServices();
 
+		try {
+			controller.logConsole("<b>" + ArduinoADK.class.getSimpleName() + " v"
+					+ this.getPackageManager().getPackageInfo(this.getPackageName(), 0).versionName + "</b>");
+		} catch (NameNotFoundException e) {
+			controller.logConsole("<b>" + ArduinoADK.class.getSimpleName() + "</b>");
+		}
+
 		if (this.getArduinoADKApplication().getSettings().isRCServerAutoStart())
 			switchRCServer.setChecked(true);
+
 	}
 
 	private void handleServerStart() {
