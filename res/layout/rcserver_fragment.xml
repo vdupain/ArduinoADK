@@ -12,36 +12,37 @@
 
         <TextView
             android:id="@+id/switchRCServerTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:clickable="true"
             android:onClick="onClick"
-            android:text="xxxxxxxxxxxxx" />
+            android:text="@string/rcserver" />
 
         <Switch
             android:id="@+id/switchRCServer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/rcserver" />
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="left" />
+
     </LinearLayout>
 
     <com.company.android.arduinoadk.ConsoleView
         android:id="@+id/console"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="382dp"
+        android:layout_weight="0.57"
         android:gravity="top"
         android:shadowColor="#000000"
         android:shadowDx="1"
         android:shadowDy="1"
         android:shadowRadius="1"
-        android:text="console..."
         android:textColor="@color/orange" />
 
     <TextView
         android:id="@+id/ip"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
+        android:layout_gravity="center_horizontal"
         android:shadowColor="#000000"
         android:shadowDx="1"
         android:shadowDy="1"
