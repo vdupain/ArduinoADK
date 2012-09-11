@@ -11,9 +11,11 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.util.Log;
+import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Switch;
+import android.widget.Toast;
 
 import com.company.android.arduinoadk.arduino.ArduinoManager;
 import com.company.android.arduinoadk.remotecontrol.RemoteControlServerService;
@@ -69,6 +71,8 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 		switchRCServer.setOnCheckedChangeListener(this);
 		initController();
 		createServices();
+		// TextView textView = (TextView)
+		// fragment.getView().findViewById(R.id.switchRCServerTextView);
 
 		try {
 			controller.logConsole("<b>" + ArduinoADK.class.getSimpleName() + " v"
@@ -80,6 +84,10 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 		if (this.getArduinoADKApplication().getSettings().isRCServerAutoStart())
 			switchRCServer.setChecked(true);
 
+	}
+
+	public void onClick(View v) {
+		Toast.makeText(this, "xxx", Toast.LENGTH_SHORT).show();
 	}
 
 	private void handleServerStart() {
