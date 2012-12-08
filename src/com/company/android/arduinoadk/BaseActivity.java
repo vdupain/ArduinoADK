@@ -95,11 +95,13 @@ public abstract class BaseActivity extends Activity implements
 		switch (item.getItemId()) {
 		case R.id.menu_rcserver:
 			if (!(this instanceof RemoteControlServerActivity))
-				startActivity(new Intent(this, RemoteControlServerActivity.class));
+				startActivity(new Intent(this,
+						RemoteControlServerActivity.class));
 			return true;
 		case R.id.menu_rcclient:
 			if (!(this instanceof RemoteControlClientActivity))
-				startActivity(new Intent(this, RemoteControlClientActivity.class));
+				startActivity(new Intent(this,
+						RemoteControlClientActivity.class));
 			return true;
 		case R.id.menu_arduino:
 			if (!(this instanceof ArduinoActivity))
@@ -107,6 +109,9 @@ public abstract class BaseActivity extends Activity implements
 			return true;
 		case R.id.menu_settings:
 			startActivity(new Intent(this, SettingsActivity.class));
+			return true;
+		case R.id.menu_controls:
+			startActivity(new Intent(this, AnalogOnScreenControls.class));
 			return true;
 		case R.id.menu_quit:
 			quit();
