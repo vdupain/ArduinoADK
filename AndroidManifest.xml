@@ -52,10 +52,6 @@
             android:label="@string/app_name" >
         </activity>
         <activity
-            android:name=".AnalogOnScreenControls"
-            android:label="@string/title_activity_analog_on_screen_controls" >
-        </activity>
-        <activity
             android:name=".usb.UsbAccessoryActivity"
             android:label="ArduinoADK"
             android:launchMode="singleInstance"

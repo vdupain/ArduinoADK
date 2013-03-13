@@ -13,9 +13,12 @@ import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Switch;
 
+import android.widget.TextView;
+import com.company.android.arduinoadk.joystick.DualJoystickView;
 import com.company.android.arduinoadk.remotecontrol.PositionMessage;
 import com.company.android.arduinoadk.remotecontrol.RemoteControlClientService;
 import com.company.android.arduinoadk.remotecontrol.RemoteControlClientService.RemoteControlClientBinder;
+import com.company.android.arduinoadk.remotecontrol.RemoteControlServerService;
 
 public class RemoteControlClientActivity extends BaseActivity implements
 		ServiceConnected, OnCheckedChangeListener {
@@ -23,6 +26,7 @@ public class RemoteControlClientActivity extends BaseActivity implements
 			.getSimpleName();
 
 	private Switch switchRCClient;
+
 	private RemoteControlClientController controller;
 
 	private ArduinoADKServiceConnection remoteControlServiceConnection = new ArduinoADKServiceConnection(
@@ -38,6 +42,7 @@ public class RemoteControlClientActivity extends BaseActivity implements
 		switchRCClient = (Switch) fragment.getView().findViewById(
 				R.id.switchRCClient);
 		switchRCClient.setOnCheckedChangeListener(this);
+
 		initController();
 	}
 
@@ -101,6 +106,7 @@ public class RemoteControlClientActivity extends BaseActivity implements
 	@Override
 	void initController() {
 		controller = new RemoteControlClientController(this);
+
 	}
 
 	@Override
@@ -186,4 +192,7 @@ public class RemoteControlClientActivity extends BaseActivity implements
 		Log.d(TAG, "onDisconnected");
 	}
 
+    public RemoteControlClientService getRemoteControlClientService() {
+        return remoteControlClientService;
+    }
 }

@@ -5,18 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.IBinder;
-import android.os.Message;
-import android.os.Messenger;
+import android.os.*;
 import android.util.Log;
-import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Switch;
-import android.widget.Toast;
-
 import com.company.android.arduinoadk.arduino.ArduinoManager;
 import com.company.android.arduinoadk.remotecontrol.RemoteControlServerService;
 import com.company.android.arduinoadk.remotecontrol.RemoteControlServerService.RemoteControlServerBinder;
@@ -34,7 +27,7 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 	private ArduinoADKServiceConnection usbServiceConnection = new ArduinoADKServiceConnection(this);
 	private ArduinoADKServiceConnection remoteControlServiceConnection = new ArduinoADKServiceConnection(this);
 
-	private UsbAccessoryManager usbAccessoryManager;
+	public static  UsbAccessoryManager usbAccessoryManager;
 	private RemoteControlServerService remoteControlServerService;
 
 	protected Handler handler = new Handler() {
@@ -84,10 +77,6 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 		if (this.getArduinoADKApplication().getSettings().isRCServerAutoStart())
 			switchRCServer.setChecked(true);
 
-	}
-
-	public void onClick(View v) {
-		Toast.makeText(this, "xxx", Toast.LENGTH_SHORT).show();
 	}
 
 	private void handleServerStart() {
@@ -258,7 +247,9 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 			}
 		} else if (binder instanceof RemoteControlServerBinder) {
 			remoteControlServerService = ((RemoteControlServerBinder) binder).getService();
-			remoteControlServerService.setHandler(this.handler);
+            remoteControlServerService.setUsbAccessoryManager(usbAccessoryManager);
+            remoteControlServerService.setHandler(this.handler);
+
 			switchRCServer.setChecked(remoteControlServerService.isRunning());
 			controller.displayIP();
 		}

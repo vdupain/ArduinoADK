@@ -121,7 +121,7 @@ public class RemoteControlServerService extends Service {
 		if (server == null) {
 			int serverPort = ((ArduinoADK) getApplicationContext()).getSettings().getRCServerTCPPort();
 			server = new TCPServer(serverPort);
-			this.server.setClientHandler(new RemoteControlClientHandler(this.usbAccessoryManager));
+			server.setClientHandler(new RemoteControlClientHandler(RemoteControlServerActivity.usbAccessoryManager));
 			server.start();
 			Intent intent = new Intent(MyIntent.ACTION_SERVER_STARTED);
 			sendBroadcast(intent);

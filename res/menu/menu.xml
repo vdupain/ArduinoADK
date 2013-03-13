@@ -22,10 +22,6 @@
         android:showAsAction="ifRoom|withText"
         android:title="@string/menu_abouthelp"/>
     <item
-        android:id="@+id/menu_controls"
-        android:showAsAction="ifRoom|withText"
-        android:title="test"/>
-    <item
         android:id="@+id/menu_quit"
         android:showAsAction="ifRoom|withText"
         android:title="@string/menu_quit"/>

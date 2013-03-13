@@ -33,8 +33,8 @@ import com.company.android.arduinoadk.clientserver.TCPClient;
  * This service is only used to contain the TCPClient running in the background.
  * To use it, you need to bind to this service and get it from the binder.
  */
-public class RemoteControlClientService extends Service implements
-		SensorEventListener {
+public class RemoteControlClientService extends Service /*implements
+		SensorEventListener*/ {
 
 	private static final String TAG = RemoteControlClientService.class
 			.getSimpleName();
@@ -51,9 +51,9 @@ public class RemoteControlClientService extends Service implements
 
 	private TCPClient client;
 
-	private Display display;
-	private SensorManager sensorManager;
-	private Sensor accelerometer;
+	//private Display display;
+	//private SensorManager sensorManager;
+	//private Sensor accelerometer;
 
 	// Use to send message to the Activity
 	private Messenger outMessenger;
@@ -74,7 +74,7 @@ public class RemoteControlClientService extends Service implements
 	public void onCreate() {
 		// The service is being created
 		Log.d(TAG, "onCreate");
-		initSensors();
+		//initSensors();
 		startClient();
 		notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 		// Display a notification about us starting.
@@ -85,7 +85,7 @@ public class RemoteControlClientService extends Service implements
 	public void onDestroy() {
 		// The service is no longer used and is being destroyed
 		Log.d(TAG, "onDestroy");
-		sensorManager.unregisterListener(this);
+		//sensorManager.unregisterListener(this);
 		stopClient();
 		// Cancel the persistent notification.
 		clearNotification();
@@ -95,8 +95,7 @@ public class RemoteControlClientService extends Service implements
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		// The service is starting, due to a call to startService()
 		Log.d(TAG, "onStartCommand startId " + startId + ": intent " + intent);
-		sensorManager.registerListener(this, accelerometer,
-				SensorManager.SENSOR_DELAY_UI);
+		//sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
 		// We want this service to continue running until it is explicitly
 		// stopped, so return sticky.
 		return START_STICKY;
@@ -125,6 +124,7 @@ public class RemoteControlClientService extends Service implements
 		return true;
 	}
 
+/*
 	private void initSensors() {
 		// Get an instance of the SensorManager
 		sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -144,6 +144,7 @@ public class RemoteControlClientService extends Service implements
 		Log.i(TAG, "accelerometer min delay =" + accelerometer.getMinDelay());
 		Log.i(TAG, "accelerometer type =" + accelerometer.getType());
 	}
+*/
 
 	private void startClient() {
 		if (client == null) {
@@ -207,6 +208,7 @@ public class RemoteControlClientService extends Service implements
 			client.write("STICK:x=" + valueX + ":y=" + valueY + "\n");
 		}
 
+        /*
 		Message message = Message.obtain();
 		message.what = WhatAbout.RCCLIENT_POSITION.ordinal();
 		message.obj = new PositionMessage(valueX, valueY);
@@ -215,8 +217,10 @@ public class RemoteControlClientService extends Service implements
 		} catch (RemoteException e) {
 			Log.w(TAG, e);
 		}
+		*/
 	}
 
+/*
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 		if (event.sensor.getType() != Sensor.TYPE_ACCELEROMETER)
@@ -248,5 +252,6 @@ public class RemoteControlClientService extends Service implements
 	@Override
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {
 	}
+*/
 
 }

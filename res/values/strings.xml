@@ -53,6 +53,5 @@
     <string name="title_prevent_going_to_sleep">Prevent going to sleep</string>
     <string name="summary_prevent_going_to_sleep">Most phones put processor to sleep mode when screen off</string>
     <string name="hello_world">Hello world!</string>
-    <string name="title_activity_analog_on_screen_controls">AnalogOnScreenControls</string>
 
 </resources>

@@ -14,9 +14,9 @@ import android.widget.Toast;
 
 import com.company.android.arduinoadk.SimpleGestureFilter.SimpleGestureListener;
 
-public abstract class BaseActivity extends Activity implements
-		SimpleGestureListener {
-	private SimpleGestureFilter detector;
+public abstract class BaseActivity extends Activity /*implements
+		SimpleGestureListener */{
+	//private SimpleGestureFilter detector;
 	private boolean isPreventGoingToSleep;
 	private PowerManager.WakeLock wakeLock;
 
@@ -33,7 +33,7 @@ public abstract class BaseActivity extends Activity implements
 		// Create a wake lock
 		wakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, getClass()
 				.getName());
-		detector = new SimpleGestureFilter(this, this);
+		//detector = new SimpleGestureFilter(this, this);
 	}
 
 	@Override
@@ -110,9 +110,6 @@ public abstract class BaseActivity extends Activity implements
 		case R.id.menu_settings:
 			startActivity(new Intent(this, SettingsActivity.class));
 			return true;
-		case R.id.menu_controls:
-			startActivity(new Intent(this, AnalogOnScreenControls.class));
-			return true;
 		case R.id.menu_quit:
 			quit();
 			return true;
@@ -134,6 +131,7 @@ public abstract class BaseActivity extends Activity implements
 		return (ArduinoADK) this.getApplication();
 	}
 
+/*
 	@Override
 	public void onSwipe(int direction) {
 		String str = "";
@@ -166,6 +164,7 @@ public abstract class BaseActivity extends Activity implements
 		this.detector.onTouchEvent(ev);
 		return super.dispatchTouchEvent(ev);
 	}
+*/
 
 	abstract void onQuit();
 
