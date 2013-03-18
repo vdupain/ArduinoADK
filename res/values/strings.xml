@@ -24,7 +24,7 @@
     <string name="notif_rcclient_service_started">RCClient started</string>
     <string name="notif_rcclient_service_stopped">RCClient Service stopped</string>
     <string name="notif_rcclient_service_label">RCClient</string>
-    
+
     <!-- Menu -->
     <string name="menu_settings">Settings</string>
     <string name="menu_arduino">Arduino</string>
@@ -52,5 +52,7 @@
     <string name="summary_rc_server">Hostname or IP address of the RC Server</string>
     <string name="title_prevent_going_to_sleep">Prevent going to sleep</string>
     <string name="summary_prevent_going_to_sleep">Most phones put processor to sleep mode when screen off</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="error_no_ipwebcam">No IPWebCam</string>
 
 </resources>

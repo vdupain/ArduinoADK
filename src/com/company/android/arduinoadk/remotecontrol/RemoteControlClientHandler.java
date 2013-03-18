@@ -33,7 +33,7 @@ public class RemoteControlClientHandler implements ClientHandler {
 
 	@Override
 	public void run() {
-		int len = 0;
+		int len;
 		try {
 			log("Connection from " + this.socket.getInetAddress().getHostAddress());
 			inputStream = socket.getInputStream();

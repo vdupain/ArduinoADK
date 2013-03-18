@@ -23,9 +23,10 @@ public class RemoteControlClientActivity extends BaseActivity implements
 			.getSimpleName();
 
 	private Switch switchRCClient;
+
 	private RemoteControlClientController controller;
 
-	private ArduinoADKServiceConnection remoteControlServiceConnection = new ArduinoADKServiceConnection(
+	private ArduinoADKServiceConnection serviceConnection = new ArduinoADKServiceConnection(
 			this);
 	private RemoteControlClientService remoteControlClientService;
 
@@ -38,6 +39,7 @@ public class RemoteControlClientActivity extends BaseActivity implements
 		switchRCClient = (Switch) fragment.getView().findViewById(
 				R.id.switchRCClient);
 		switchRCClient.setOnCheckedChangeListener(this);
+
 		initController();
 	}
 
@@ -101,6 +103,7 @@ public class RemoteControlClientActivity extends BaseActivity implements
 	@Override
 	void initController() {
 		controller = new RemoteControlClientController(this);
+
 	}
 
 	@Override
@@ -118,7 +121,7 @@ public class RemoteControlClientActivity extends BaseActivity implements
 				startService(new Intent(this, RemoteControlClientService.class));
 				doBindRemoteControlClientService();
 			} else {
-				unbindService(remoteControlServiceConnection);
+				unbindService(serviceConnection);
 				stopService(new Intent(this, RemoteControlClientService.class));
 				this.remoteControlClientService = null;
 			}
@@ -136,7 +139,7 @@ public class RemoteControlClientActivity extends BaseActivity implements
 		Intent intent = new Intent(this, RemoteControlClientService.class);
 		Messenger messenger = new Messenger(handler);
 		intent.putExtra("MESSENGER", messenger);
-		boolean success = bindService(intent, remoteControlServiceConnection, 0);
+		boolean success = bindService(intent, serviceConnection, 0);
 		if (!success) {
 			Log.e(TAG,
 					"Failed to bind to "
@@ -155,7 +158,7 @@ public class RemoteControlClientActivity extends BaseActivity implements
 		Log.d(TAG, "doUnbindServices");
 		// Detach our existing connection
 		if (isBoundToRemoteControlClientService()) {
-			unbindService(remoteControlServiceConnection);
+			unbindService(serviceConnection);
 			this.remoteControlClientService = null;
 		}
 	}
@@ -186,4 +189,7 @@ public class RemoteControlClientActivity extends BaseActivity implements
 		Log.d(TAG, "onDisconnected");
 	}
 
+    public RemoteControlClientService getRemoteControlClientService() {
+        return remoteControlClientService;
+    }
 }
