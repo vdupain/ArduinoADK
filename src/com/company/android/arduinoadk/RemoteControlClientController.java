@@ -10,6 +10,7 @@ public class RemoteControlClientController extends AbstractController<RemoteCont
     DualJoystickView joystick;
     TextView txtX1, txtY1;
     TextView txtX2, txtY2;
+    IPWebCamWebView ipWebCamWebView;
 
     private JoystickMovedListener left = new JoystickMovedListener() {
 
@@ -61,9 +62,11 @@ public class RemoteControlClientController extends AbstractController<RemoteCont
         txtX2 = (TextView)findViewById(R.id.TextViewX2);
         txtY2 = (TextView)findViewById(R.id.TextViewY2);
         joystick = (DualJoystickView) findViewById(R.id.dualjoystickView);
-
         joystick.setOnJoystickMovedListener(left, right);
-	}
+        ipWebCamWebView = (IPWebCamWebView) findViewById(R.id.ipWebcamWebview);
+        String server = this.activity.getArduinoADKApplication().getSettings().getRCServer();
+        ipWebCamWebView.loadUrl("http://" + server+ ":8080");
+    }
 
 	@Override
 	protected void onUsbAccessoryAttached() {

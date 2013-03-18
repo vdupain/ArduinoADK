@@ -40,6 +40,11 @@
         </TableRow>
     </TableLayout>
 
+    <com.company.android.arduinoadk.IPWebCamWebView  android:id="@+id/ipWebcamWebview"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+    />
+
     <com.company.android.arduinoadk.ConsoleView
             android:id="@+id/consoleClient"
             android:layout_width="fill_parent"

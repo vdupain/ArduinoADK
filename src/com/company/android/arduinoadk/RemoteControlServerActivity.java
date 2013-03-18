@@ -4,18 +4,23 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.ResolveInfo;
 import android.os.*;
 import android.util.Log;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Switch;
+import android.widget.Toast;
 import com.company.android.arduinoadk.arduino.ArduinoManager;
 import com.company.android.arduinoadk.remotecontrol.RemoteControlServerService;
 import com.company.android.arduinoadk.remotecontrol.RemoteControlServerService.RemoteControlServerBinder;
 import com.company.android.arduinoadk.usb.UsbAccessoryManager;
 import com.company.android.arduinoadk.usb.UsbAccessoryService;
 import com.company.android.arduinoadk.usb.UsbAccessoryService.UsbAccessoryBinder;
+
+import java.util.List;
 
 public class RemoteControlServerActivity extends BaseActivity implements ServiceConnected, OnCheckedChangeListener {
 	private static final String TAG = RemoteControlServerActivity.class.getSimpleName();
@@ -64,8 +69,6 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 		switchRCServer.setOnCheckedChangeListener(this);
 		initController();
 		createServices();
-		// TextView textView = (TextView)
-		// fragment.getView().findViewById(R.id.switchRCServerTextView);
 
 		try {
 			controller.logConsole("<b>" + ArduinoADK.class.getSimpleName() + " v"
@@ -198,6 +201,7 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 			if (buttonView.isChecked()) {
 				startService(new Intent(this, RemoteControlServerService.class));
 				doBindRemoteControlServerService();
+                startIPWebcam();
 			} else {
 				doUnbindRemoteControlServerService();
 				stopService(new Intent(this, RemoteControlServerService.class));
@@ -206,7 +210,31 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 		}
 	}
 
-	@Override
+    private void startIPWebcam() {
+        /*
+        Intent launcher = new Intent().setAction(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME);
+        Intent ipwebcam =
+                new Intent()
+                        .setClassName("com.pas.webcam", "com.pas.webcam.Rolling")
+                        .putExtra("hidebtn1", true)                // Hide help button
+                        .putExtra("caption2", "Run in background") // Change caption on "Actions..."
+                        .putExtra("intent2", launcher)             // And give button another purpose
+                        .putExtra("returnto", new Intent().setClassName(RemoteControlServerActivity.this,RemoteControlServerActivity.class.getName())); // Set activity to return to
+        */
+        Intent ipwebcam = new Intent().setClassName("com.pas.webcam", "com.pas.webcam.Rolling");
+        final PackageManager packageManager = getPackageManager();
+        List<ResolveInfo> list = packageManager.queryIntentActivities(ipwebcam, PackageManager.MATCH_DEFAULT_ONLY);
+        if (list.size() == 0) {
+            String errorMessage = RemoteControlServerActivity.this.getResources().getString(R.string.error_no_ipwebcam);
+            //Logger.e(errorMessage);
+            Toast.makeText(RemoteControlServerActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+            return;
+        }
+        ipwebcam.putExtra("hidebtn1", true);
+        startActivityForResult(ipwebcam, 1);
+    }
+
+    @Override
 	public Object onRetainNonConfigurationInstance() {
 		if (usbAccessoryManager != null) {
 			return usbAccessoryManager;

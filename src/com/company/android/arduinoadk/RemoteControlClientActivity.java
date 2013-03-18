@@ -13,12 +13,9 @@ import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Switch;
 
-import android.widget.TextView;
-import com.company.android.arduinoadk.joystick.DualJoystickView;
 import com.company.android.arduinoadk.remotecontrol.PositionMessage;
 import com.company.android.arduinoadk.remotecontrol.RemoteControlClientService;
 import com.company.android.arduinoadk.remotecontrol.RemoteControlClientService.RemoteControlClientBinder;
-import com.company.android.arduinoadk.remotecontrol.RemoteControlServerService;
 
 public class RemoteControlClientActivity extends BaseActivity implements
 		ServiceConnected, OnCheckedChangeListener {
@@ -29,7 +26,7 @@ public class RemoteControlClientActivity extends BaseActivity implements
 
 	private RemoteControlClientController controller;
 
-	private ArduinoADKServiceConnection remoteControlServiceConnection = new ArduinoADKServiceConnection(
+	private ArduinoADKServiceConnection serviceConnection = new ArduinoADKServiceConnection(
 			this);
 	private RemoteControlClientService remoteControlClientService;
 
@@ -124,7 +121,7 @@ public class RemoteControlClientActivity extends BaseActivity implements
 				startService(new Intent(this, RemoteControlClientService.class));
 				doBindRemoteControlClientService();
 			} else {
-				unbindService(remoteControlServiceConnection);
+				unbindService(serviceConnection);
 				stopService(new Intent(this, RemoteControlClientService.class));
 				this.remoteControlClientService = null;
 			}
@@ -142,7 +139,7 @@ public class RemoteControlClientActivity extends BaseActivity implements
 		Intent intent = new Intent(this, RemoteControlClientService.class);
 		Messenger messenger = new Messenger(handler);
 		intent.putExtra("MESSENGER", messenger);
-		boolean success = bindService(intent, remoteControlServiceConnection, 0);
+		boolean success = bindService(intent, serviceConnection, 0);
 		if (!success) {
 			Log.e(TAG,
 					"Failed to bind to "
@@ -161,7 +158,7 @@ public class RemoteControlClientActivity extends BaseActivity implements
 		Log.d(TAG, "doUnbindServices");
 		// Detach our existing connection
 		if (isBoundToRemoteControlClientService()) {
-			unbindService(remoteControlServiceConnection);
+			unbindService(serviceConnection);
 			this.remoteControlClientService = null;
 		}
 	}
