@@ -1,6 +1,8 @@
 package com.company.android.arduinoadk;
 
 
+import android.webkit.WebSettings;
+import android.webkit.WebViewClient;
 import android.widget.TextView;
 import com.company.android.arduinoadk.joystick.DualJoystickView;
 import com.company.android.arduinoadk.joystick.JoystickMovedListener;
@@ -64,6 +66,9 @@ public class RemoteControlClientController extends AbstractController<RemoteCont
         joystick = (DualJoystickView) findViewById(R.id.dualjoystickView);
         joystick.setOnJoystickMovedListener(left, right);
         ipWebCamWebView = (IPWebCamWebView) findViewById(R.id.ipWebcamWebview);
+        WebSettings webSettings = ipWebCamWebView.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        ipWebCamWebView.setWebViewClient(new WebViewClient());
         String server = this.activity.getArduinoADKApplication().getSettings().getRCServer();
         ipWebCamWebView.loadUrl("http://" + server+ ":8080");
     }

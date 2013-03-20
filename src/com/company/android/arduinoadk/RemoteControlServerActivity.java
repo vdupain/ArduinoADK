@@ -201,7 +201,7 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 			if (buttonView.isChecked()) {
 				startService(new Intent(this, RemoteControlServerService.class));
 				doBindRemoteControlServerService();
-                startIPWebcam();
+                //startIPWebcam();
 			} else {
 				doUnbindRemoteControlServerService();
 				stopService(new Intent(this, RemoteControlServerService.class));
