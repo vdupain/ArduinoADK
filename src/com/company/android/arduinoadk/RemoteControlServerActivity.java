@@ -277,7 +277,6 @@ public class RemoteControlServerActivity extends BaseActivity implements Service
 			remoteControlServerService = ((RemoteControlServerBinder) binder).getService();
             remoteControlServerService.setUsbAccessoryManager(usbAccessoryManager);
             remoteControlServerService.setHandler(this.handler);
-
 			switchRCServer.setChecked(remoteControlServerService.isRunning());
 			controller.displayIP();
 		}

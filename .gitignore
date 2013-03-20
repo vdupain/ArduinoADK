@@ -1,4 +1,6 @@
 .DS_Store
 bin
 gen
-
+target
+*.iml
+.idea
