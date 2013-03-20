@@ -38,9 +38,6 @@ public class UsbAccessoryService extends Service {
 	 * runs in the same process as its clients, we don't need to deal with IPC.
 	 */
 	public class UsbAccessoryBinder extends Binder {
-		public UsbAccessoryService getService() {
-			return UsbAccessoryService.this;
-		}
 
 		public UsbAccessoryManager getUsbAccessoryManager() {
 			return UsbAccessoryService.this.usbAccessoryManager;

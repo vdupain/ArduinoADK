@@ -117,18 +117,19 @@ public class RemoteControlServerService extends Service {
 		return server != null;
 	}
 
-	private void startServer() {
+	public void startServer() {
 		if (server == null) {
 			int serverPort = ((ArduinoADK) getApplicationContext()).getSettings().getRCServerTCPPort();
 			server = new TCPServer(serverPort);
-			server.setClientHandler(new RemoteControlClientHandler(RemoteControlServerActivity.usbAccessoryManager));
+            RemoteControlClientHandler remoteControlClientHandler = new RemoteControlClientHandler(RemoteControlServerActivity.usbAccessoryManager);
+            server.setClientHandler(remoteControlClientHandler);
 			server.start();
 			Intent intent = new Intent(MyIntent.ACTION_SERVER_STARTED);
 			sendBroadcast(intent);
 		}
 	}
 
-	private void stopServer() {
+	public void stopServer() {
 		if (server != null) {
 			server.stop();
 			server = null;

@@ -9,14 +9,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.widget.Toast;
 
-import com.company.android.arduinoadk.SimpleGestureFilter.SimpleGestureListener;
+public abstract class BaseActivity extends Activity {
 
-public abstract class BaseActivity extends Activity /*implements
-		SimpleGestureListener */{
-	//private SimpleGestureFilter detector;
 	private boolean isPreventGoingToSleep;
 	private PowerManager.WakeLock wakeLock;
 
@@ -33,7 +29,6 @@ public abstract class BaseActivity extends Activity /*implements
 		// Create a wake lock
 		wakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, getClass()
 				.getName());
-		//detector = new SimpleGestureFilter(this, this);
 	}
 
 	@Override
@@ -130,41 +125,6 @@ public abstract class BaseActivity extends Activity /*implements
 	ArduinoADK getArduinoADKApplication() {
 		return (ArduinoADK) this.getApplication();
 	}
-
-/*
-	@Override
-	public void onSwipe(int direction) {
-		String str = "";
-		switch (direction) {
-		case SimpleGestureFilter.SWIPE_RIGHT:
-			str = "Swipe Right";
-			// setRCServerContainerVisible();
-			break;
-		case SimpleGestureFilter.SWIPE_LEFT:
-			str = "Swipe Left";
-			// setArduinoContainerVisible();
-			break;
-		case SimpleGestureFilter.SWIPE_DOWN:
-			str = "Swipe Down";
-			break;
-		case SimpleGestureFilter.SWIPE_UP:
-			str = "Swipe Up";
-			break;
-		}
-		Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
-	}
-
-	@Override
-	public void onDoubleTap() {
-		Toast.makeText(this, "Double Tap", Toast.LENGTH_SHORT).show();
-	}
-
-	@Override
-	public boolean dispatchTouchEvent(MotionEvent ev) {
-		this.detector.onTouchEvent(ev);
-		return super.dispatchTouchEvent(ev);
-	}
-*/
 
 	abstract void onQuit();
 
