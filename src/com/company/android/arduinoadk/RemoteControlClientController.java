@@ -1,13 +1,17 @@
 package com.company.android.arduinoadk;
 
 
+import android.net.Uri;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import com.company.android.arduinoadk.joystick.JoystickMovedListener;
 import com.company.android.arduinoadk.joystick.JoystickView;
 
 public class RemoteControlClientController extends AbstractController<RemoteControlClientActivity> {
 	private ConsoleView console;
     private JoystickView joystick;
-    private IPWebCamWebView ipWebCamWebView;
+    private WebView webView;
 
 
     private JoystickMovedListener listener = new JoystickMovedListener() {
@@ -32,6 +36,14 @@ public class RemoteControlClientController extends AbstractController<RemoteCont
         joystick = (JoystickView) findViewById(R.id.joystickView);
         joystick.setOnJoystickMovedListener(listener);
 
+        webView = (WebView) findViewById(R.id.webView);
+        webView.setWebChromeClient(new WebChromeClient());
+        webView.getSettings().setPluginState(WebSettings.PluginState.ON_DEMAND);
+        webView.getSettings().setJavaScriptEnabled(true);
+        String server = this.activity.getArduinoADKApplication().getSettings().getRCServer();
+        //Uri url = Uri.parse("http://" + server+ ":8080" + "/");
+        //webView.loadUrl(url.toString());
+        webView.loadUrl("file:///data/data/com/company/android/arduinoadk/index.html");
     }
 
 	@Override
