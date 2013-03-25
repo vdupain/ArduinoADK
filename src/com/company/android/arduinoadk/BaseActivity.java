@@ -98,10 +98,10 @@ public abstract class BaseActivity extends Activity {
 				startActivity(new Intent(this,
 						RemoteControlClientActivity.class));
 			return true;
-		case R.id.menu_arduino:
-			if (!(this instanceof ArduinoActivity))
-				startActivity(new Intent(this, ArduinoActivity.class));
-			return true;
+//		case R.id.menu_arduino:
+//			if (!(this instanceof ArduinoActivity))
+//				startActivity(new Intent(this, ArduinoActivity.class));
+//			return true;
 		case R.id.menu_settings:
 			startActivity(new Intent(this, SettingsActivity.class));
 			return true;

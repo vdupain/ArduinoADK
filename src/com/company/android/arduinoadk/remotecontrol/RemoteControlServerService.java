@@ -47,7 +47,7 @@ public class RemoteControlServerService extends Service {
 
 	private UsbAccessoryManager usbAccessoryManager;
 
-	// Use to send message to the Activity
+    // Use to send message to the Activity
 	private Messenger outMessenger;
 
 	/**
@@ -60,13 +60,25 @@ public class RemoteControlServerService extends Service {
 			return RemoteControlServerService.this;
 		}
 
-	}
+        public UsbAccessoryManager getUsbAccessoryManager() {
+            return RemoteControlServerService.this.usbAccessoryManager;
+        }
+
+    }
 
 	@Override
 	public void onCreate() {
 		// The service is being created
 		Log.d(TAG, "onCreate");
+
+        if (usbAccessoryManager == null) {
+            usbAccessoryManager = new UsbAccessoryManager(this.getApplicationContext());
+        }
+        usbAccessoryManager.setupUsbAccessory();
+        usbAccessoryManager.openUsbAccessory();
+
 		startServer();
+
 		notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 		// Display a notification about us starting.
 		showNotification();
@@ -77,7 +89,11 @@ public class RemoteControlServerService extends Service {
 		// The service is no longer used and is being destroyed
 		Log.d(TAG, "onDestroy");
 		stopServer();
-		// Cancel the persistent notification.
+
+        usbAccessoryManager.closeUsbAccessory();
+        usbAccessoryManager.unregisterReceiver();
+
+        // Cancel the persistent notification.
 		clearNotification();
 	}
 
@@ -121,7 +137,7 @@ public class RemoteControlServerService extends Service {
 		if (server == null) {
 			int serverPort = ((ArduinoADK) getApplicationContext()).getSettings().getRCServerTCPPort();
 			server = new TCPServer(serverPort);
-            RemoteControlClientHandler remoteControlClientHandler = new RemoteControlClientHandler(RemoteControlServerActivity.usbAccessoryManager);
+            RemoteControlClientHandler remoteControlClientHandler = new RemoteControlClientHandler(usbAccessoryManager);
             server.setClientHandler(remoteControlClientHandler);
 			server.start();
 			Intent intent = new Intent(MyIntent.ACTION_SERVER_STARTED);
@@ -162,9 +178,9 @@ public class RemoteControlServerService extends Service {
 		this.server.getClientHandler().setHandler(handler);
 	}
 
-	public void setUsbAccessoryManager(UsbAccessoryManager usbAccessoryManager) {
-		this.usbAccessoryManager = usbAccessoryManager;
-	}
+//	public void setUsbAccessoryManager(UsbAccessoryManager usbAccessoryManager) {
+//		this.usbAccessoryManager = usbAccessoryManager;
+//	}
 
 	public String getIpInfo() {
 		if (!isRunning())
