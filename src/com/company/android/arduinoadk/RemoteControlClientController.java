@@ -43,7 +43,7 @@ public class RemoteControlClientController extends AbstractController<RemoteCont
         String server = this.activity.getArduinoADKApplication().getSettings().getRCServer();
         //Uri url = Uri.parse("http://" + server+ ":8080" + "/");
         //webView.loadUrl(url.toString());
-        webView.loadUrl("file:///data/data/com/company/android/arduinoadk/index.html");
+        webView.loadUrl("file:///android_asset/index.html");
     }
 
 	@Override
