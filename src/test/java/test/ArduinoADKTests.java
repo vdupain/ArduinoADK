@@ -11,7 +11,7 @@ public class ArduinoADKTests {
 		double totalY=0.234;
 		String stringToParse = "STICK:x=" + totalX + ":y=" + totalY  + "\n";
 		System.out.println(stringToParse);
-		
+
 	    double actualX = Double.parseDouble(stringToParse.substring(stringToParse.indexOf("x=")+2, stringToParse.indexOf(":y=")));
 	    double actualY = Double.parseDouble(stringToParse.substring(stringToParse.indexOf("y=")+2, stringToParse.indexOf("\n")));
 		Assert.assertTrue(totalX==actualX);
